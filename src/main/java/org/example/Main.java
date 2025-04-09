@@ -17,6 +17,7 @@ public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
     private static OtpService otpService;
+    private static UserService userService;
 
     public static void main(String[] args) {
 
@@ -73,8 +74,7 @@ public class Main {
                     adminController.listUsers();
                     break;
                 case 3:
-                    //deleteUser(adminController);
-                    System.out.println("Удалить пользователя!");
+                    deleteUser(adminController);
                     break;
                 case 0:
                     System.out.println("Завершаем работу приложения.");
@@ -132,6 +132,18 @@ public class Main {
     private static String getInput(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine();
+    }
+
+    private static void deleteUser(AdminController controller) {
+        System.out.print("Введите id пользователя для удаления: ");
+        Long id = Long.valueOf(getInput(""));
+
+        try {
+            userService.deleteUser(id);
+            System.out.println("Пользователь удалён.");
+        } catch (Exception e) {
+            System.out.println("Ошибка удаления пользователя: " + e.getMessage());
+        }
     }
 
     private static void changeOtpConfig(AdminController controller) {
@@ -194,12 +206,6 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Ошибка начала операции: " + e.getMessage());
         }
-    }
-
-    // Перечисление ролей пользователей
-    private enum Role {
-        ADMIN,
-        USER
     }
 
 }
