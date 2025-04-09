@@ -7,6 +7,8 @@ import org.example.service.UserService;
 
 import java.util.List;
 
+import static org.example.Main.getInput;
+
 public class AdminController {
 
     private final UserService userService;
@@ -34,6 +36,18 @@ public class AdminController {
             }
         } else {
             System.out.println("Список пользователей пуст.");
+        }
+    }
+
+    public void deleteUser() {
+        System.out.print("Введите id пользователя для удаления: ");
+        long id = Long.parseLong(getInput(""));
+
+        try {
+            userService.deleteUser(id);
+            System.out.println("Пользователь удалён.");
+        } catch (Exception e) {
+            System.out.println("Ошибка удаления пользователя: " + e.getMessage());
         }
     }
 

@@ -11,8 +11,6 @@ import org.example.service.UserService;
 import org.example.api.OperationController;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
-
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -75,7 +73,7 @@ public class Main {
                     adminController.listUsers();
                     break;
                 case 3:
-                    deleteUser(adminController);
+                    adminController.deleteUser();
                     break;
                 case 0:
                     System.out.println("Завершаем работу приложения.");
@@ -130,21 +128,9 @@ public class Main {
     }
 
     // Вспомогательные методы для взаимодействия с пользователем
-    private static String getInput(String prompt) {
+    public static String getInput(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine();
-    }
-
-    private static void deleteUser(AdminController controller) {
-        System.out.print("Введите id пользователя для удаления: ");
-        Long id = Long.valueOf(getInput(""));
-
-        try {
-            userService.deleteUser(id);
-            System.out.println("Пользователь удалён.");
-        } catch (Exception e) {
-            System.out.println("Ошибка удаления пользователя: " + e.getMessage());
-        }
     }
 
     private static void changeOtpConfig(AdminController controller) {
