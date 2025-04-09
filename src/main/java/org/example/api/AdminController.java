@@ -1,7 +1,11 @@
 package org.example.api;
 
+import org.example.dao.UserDao;
+import org.example.model.User;
 import org.example.service.OtpService;
 import org.example.service.UserService;
+
+import java.util.List;
 
 public class AdminController {
 
@@ -20,7 +24,17 @@ public class AdminController {
     }
 
     public void listUsers() {
-        System.out.println("Список пользователей:");
-        // Логика получения списка пользователей
+
+        List<User> allUsers = userService.getAllUsers();
+
+        if (!allUsers.isEmpty()) {
+            System.out.println("Список пользователей:");
+            for (User user : allUsers) {
+                System.out.println(user.getId() + " " + user.getUsername() + " (" + user.getRole() + ")");
+            }
+        } else {
+            System.out.println("Список пользователей пуст.");
+        }
     }
+
 }

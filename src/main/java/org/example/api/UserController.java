@@ -1,5 +1,6 @@
 package org.example.api;
 
+import org.example.dao.UserDao;
 import org.example.service.OtpService;
 import org.example.service.UserService;
 

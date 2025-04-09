@@ -28,11 +28,18 @@ public class UserDao {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
+                // Получаем строку роли из базы данных
+                String roleStr = rs.getString("role");
+
+                // Преобразуем строку роли в объект перечисления Role
+                User.Role role = User.Role.valueOf(roleStr.toUpperCase());
+
+                // Создаем объект User с преобразованной ролью
                 User user = new User(
-                        rs.getLong("id"),
-                        rs.getString("username"),
-                        rs.getString("password_hash"),
-                        rs.getString("role")
+                        rs.getLong("id"),          // ID пользователя
+                        rs.getString("username"),  // Имя пользователя
+                        rs.getString("password_hash"), // Хэш пароля
+                        role                       // Роль пользователя (объект перечисления)
                 );
                 users.add(user);
             }

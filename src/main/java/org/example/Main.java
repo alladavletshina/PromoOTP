@@ -11,6 +11,8 @@ import org.example.service.UserService;
 import org.example.api.OperationController;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
+
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -70,7 +72,6 @@ public class Main {
                     changeOtpConfig(adminController);
                     break;
                 case 2:
-                    //listUsers(adminController);
                     adminController.listUsers();
                     break;
                 case 3:
