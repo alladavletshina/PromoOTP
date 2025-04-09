@@ -8,6 +8,7 @@ import org.example.service.UserService;
 import java.util.List;
 
 import static org.example.Main.getInput;
+import static org.example.model.User.Role.USER;
 
 public class AdminController {
 
@@ -32,7 +33,9 @@ public class AdminController {
         if (!allUsers.isEmpty()) {
             System.out.println("Список пользователей:");
             for (User user : allUsers) {
-                System.out.println(user.getId() + " " + user.getUsername() + " (" + user.getRole() + ")");
+                if (user.getRole() == USER) {
+                    System.out.println(user.getId() + " " + user.getUsername() + " (" + user.getRole() + ")");
+                }
             }
         } else {
             System.out.println("Список пользователей пуст.");
