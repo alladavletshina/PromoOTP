@@ -99,8 +99,7 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    //registerUser(userController);
-                    userController.registerUser("John Doe", "john@example.com", "password");
+                    userController.registerUser();
                     break;
                 case 2:
                     //loginUser(userController);
@@ -146,24 +145,6 @@ public class Main {
             System.out.println("Ошибка обновления конфигурации: " + e.getMessage());
         }
     }
-
-
-    private static void registerUser(UserController controller) {
-        System.out.print("Имя пользователя: ");
-        String username = getInput("");
-        System.out.print("Адрес электронной почты: ");
-        String email = getInput("");
-        System.out.print("Пароль: ");
-        String password = getInput("");
-
-        try {
-            controller.registerUser(username, email, password);
-            System.out.println("Пользователь зарегистрирован успешно.");
-        } catch (Exception e) {
-            System.out.println("Ошибка регистрации: " + e.getMessage());
-        }
-    }
-
 
     private static void generateOtpCode(OtpService service) {
         System.out.print("Электронная почта: ");
