@@ -34,4 +34,9 @@ public class UserService {
     public boolean deleteUser(long id) {
         return userDao.deleteUser(id);
     }
+
+    // Новый метод для получения роли пользователя
+    public User.Role getRole(String username) {
+        return userDao.getRole(username);
+    }
 }

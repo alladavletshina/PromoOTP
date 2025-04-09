@@ -56,15 +56,6 @@ public class User {
         this.role = role;
     }
 
-    // Методы для проверки ролей
-    public boolean hasAdminRole() {
-        return this.role == Role.ADMIN;
-    }
-
-    public boolean hasUserRole() {
-        return this.role == Role.USER;
-    }
-
     // Переопределённый метод toString для удобного вывода
     @Override
     public String toString() {

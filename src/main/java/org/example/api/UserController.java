@@ -18,8 +18,8 @@ public class UserController {
         // Логика регистрации пользователя
     }
 
-    public void loginUser(String email, String password) {
-        System.out.println("Авторизация пользователя: " + email);
+    public void loginUser(String name, String password) {
+        System.out.println("Авторизация пользователя: " + name);
         // Логика авторизации пользователя
     }
 }

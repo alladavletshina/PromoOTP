@@ -1,10 +1,10 @@
 package org.example;
 
-
 import org.example.api.AdminController;
 import org.example.api.UserController;
 import org.example.dao.UserDao;
 import org.example.model.Operation;
+import org.example.model.User;
 import org.example.util.EmailNotificationService;
 import org.example.service.OtpService;
 import org.example.service.UserService;
@@ -16,10 +16,11 @@ import java.util.Scanner;
 public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static OtpService otpService;
 
     public static void main(String[] args) {
 
-        // Создание объектов сервисов и контроллеров
+        // Создание общих объектов сервисов и контроллеров
         EmailNotificationService emailService = new EmailNotificationService();
         TelegramBot telegramBot = new TelegramBot();
         UserDao userDao = new UserDao();
@@ -31,41 +32,49 @@ public class Main {
         OperationController operationController = new OperationController(otpService);
         AdminController adminController = new AdminController(userService, otpService);
 
-        while (true) { // Бесконечный цикл для постоянного взаимодействия с пользователем
+        System.out.println("Добро пожаловать! Пожалуйста, войдите в систему.");
+        String name = getInput("Укажите имя: ");
+        String password = getInput("Пароль: ");
+
+        try {
+            // Логин пользователя
+            userController.loginUser(name, password);
+            System.out.println("Успешный вход.");
+
+            // Определение роли пользователя
+            User.Role role = userService.getRole(name);
+            if (role == User.Role.ADMIN) {
+                runAdminInterface(adminController);
+            } else {
+                runUserInterface(userController, operationController);
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка входа: " + e.getMessage());
+        }
+    }
+
+    // Метод для запуска интерфейса администратора
+    private static void runAdminInterface(AdminController adminController) {
+        while (true) {
             System.out.println("\nВыберите действие:");
-            System.out.println("1. Зарегистрироваться");
-            System.out.println("2. Войти");
-            System.out.println("3. Сгенерировать OTP-код");
-            System.out.println("4. Проверить OTP-код");
-            System.out.println("5. Запустить защищённую операцию");
-            System.out.println("6. Настроить конфигурацию OTP-кодов (администрация)");
-            System.out.println("7. Вывести список пользователей (администрация)");
+            System.out.println("1. Изменить конфигурацию OTP-кодов");
+            System.out.println("2. Получить список пользователей");
+            System.out.println("3. Удалить пользователя");
             System.out.println("0. Выход");
 
-            int choice = Integer.parseInt(scanner.nextLine());
+            int choice = Integer.parseInt(getInput("Ваш выбор: "));
 
             switch (choice) {
                 case 1:
-                    userController.registerUser("John Doe", "john@example.com", "password");
+                    changeOtpConfig(adminController);
                     break;
                 case 2:
-                    userController.loginUser("john@example.com", "password");
+                    //listUsers(adminController);
+                    adminController.listUsers();
                     break;
                 case 3:
-                    otpService.generateOtpCodeForUser("john@example.com");
-                    break;
-                case 4:
-                    operationController.verifyOtpCode("john@example.com", "123456");
-                    break;
-                case 5:
-                    Operation protectedOperation = new Operation(111111111L,"Снятие", 1L);
-                    operationController.initiateProtectedOperation(protectedOperation);
-                    break;
-                case 6:
-                    adminController.changeOtpConfig(10, 6);
-                    break;
-                case 7:
-                    adminController.listUsers();
+                    //deleteUser(adminController);
+                    System.out.println("Удалить пользователя!");
                     break;
                 case 0:
                     System.out.println("Завершаем работу приложения.");
@@ -75,4 +84,123 @@ public class Main {
             }
         }
     }
+
+    // Метод для запуска интерфейса пользователя
+    private static void runUserInterface(UserController userController, OperationController operationController) {
+        while (true) {
+            System.out.println("\nВыберите действие:");
+            System.out.println("1. Зарегистрироваться");
+            System.out.println("2. Войти");
+            System.out.println("3. Сгенерировать OTP-код");
+            System.out.println("4. Проверить OTP-код");
+            System.out.println("5. Выполнить защищённую операцию");
+            System.out.println("0. Выход");
+
+            int choice = Integer.parseInt(getInput("Ваш выбор: "));
+
+            switch (choice) {
+                case 1:
+                    //registerUser(userController);
+                    userController.registerUser("John Doe", "john@example.com", "password");
+                    break;
+                case 2:
+                    //loginUser(userController);
+                    userController.loginUser("john@example.com", "password");
+
+                    break;
+                case 3:
+                    //generateOtpCode(otpService);
+                    otpService.generateOtpCodeForUser("john@example.com");
+                    break;
+                case 4:
+                    //verifyOtpCode(operationController);
+                    operationController.verifyOtpCode("john@example.com", "123456");
+                    break;
+                case 5:
+                    initiateProtectedOperation(operationController);
+                    break;
+                case 0:
+                    System.out.println("Завершаем работу приложения.");
+                    return;
+                default:
+                    System.out.println("Неправильный выбор. Попробуйте снова.");
+            }
+        }
+    }
+
+    // Вспомогательные методы для взаимодействия с пользователем
+    private static String getInput(String prompt) {
+        System.out.print(prompt);
+        return scanner.nextLine();
+    }
+
+    private static void changeOtpConfig(AdminController controller) {
+        System.out.print("Время жизни OTP-кода (минуты): ");
+        int timeToLive = Integer.parseInt(getInput(""));
+        System.out.print("Длина OTP-кода: ");
+        int length = Integer.parseInt(getInput(""));
+
+        try {
+            controller.changeOtpConfig(timeToLive, length);
+            System.out.println("Конфигурация OTP-кодов обновлена.");
+        } catch (Exception e) {
+            System.out.println("Ошибка обновления конфигурации: " + e.getMessage());
+        }
+    }
+
+
+    private static void registerUser(UserController controller) {
+        System.out.print("Имя пользователя: ");
+        String username = getInput("");
+        System.out.print("Адрес электронной почты: ");
+        String email = getInput("");
+        System.out.print("Пароль: ");
+        String password = getInput("");
+
+        try {
+            controller.registerUser(username, email, password);
+            System.out.println("Пользователь зарегистрирован успешно.");
+        } catch (Exception e) {
+            System.out.println("Ошибка регистрации: " + e.getMessage());
+        }
+    }
+
+
+    private static void generateOtpCode(OtpService service) {
+        System.out.print("Электронная почта: ");
+        String email = getInput("");
+
+        try {
+            service.generateOtpCodeForUser(email);
+            System.out.println("OTP-код отправлен на вашу электронную почту.");
+        } catch (Exception e) {
+            System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
+        }
+    }
+
+
+    private static void initiateProtectedOperation(OperationController controller) {
+        System.out.print("ID операции: ");
+        long id = Long.parseLong(getInput(""));
+        System.out.print("Тип операции: ");
+        String type = getInput("");
+        System.out.print("Сумма: ");
+        long amount = Long.parseLong(getInput(""));
+
+        Operation protectedOperation = new Operation(id, type, amount);
+        try {
+            controller.initiateProtectedOperation(protectedOperation);
+            System.out.println("Операция начата успешно.");
+        } catch (Exception e) {
+            System.out.println("Ошибка начала операции: " + e.getMessage());
+        }
+    }
+
+    // Перечисление ролей пользователей
+    private enum Role {
+        ADMIN,
+        USER
+    }
+
 }
+

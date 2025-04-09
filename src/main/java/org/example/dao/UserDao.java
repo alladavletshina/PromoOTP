@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.example.model.User;
 import org.example.util.DbConnection;
@@ -97,6 +96,21 @@ public class UserDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public User.Role getRole(String username) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT role FROM users WHERE username = ?");
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String roleStr = rs.getString("role");
+                return User.Role.valueOf(roleStr.toUpperCase()); // Преобразуем строку в объект Role
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null; // Возвращаем null, если роль не найдена
     }
 
 }
