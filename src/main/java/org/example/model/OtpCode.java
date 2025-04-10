@@ -5,27 +5,35 @@ import java.time.LocalDateTime;
 public class OtpCode {
 
     private long id;
+    private long user_id;
+    private long operationId; // Новое поле для operation_id
     private String code;
     private String status;
     private LocalDateTime creationTime;
     private LocalDateTime expirationTime;
+    private String description_operation;
 
-    // Конструкторы
-    public OtpCode() {} // Необходимый пустой конструктор для JDBC
-
-    public OtpCode(long id, String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime) {
-        this.id = id;
+    // Конструктор для вставки новых записей
+    public OtpCode(long user_id, long operationId, String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime, String description_operation) {
+        this.user_id = user_id;
+        this.operationId = operationId;
         this.code = code;
         this.status = status;
         this.creationTime = creationTime;
         this.expirationTime = expirationTime;
+        this.description_operation = description_operation;
     }
 
-    public OtpCode(String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime) {
+    // Конструктор для получения существующих записей
+    public OtpCode(long id, long user_id, long operationId, String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime, String description_operation) {
+        this.id = id;
+        this.user_id = user_id;
+        this.operationId = operationId;
         this.code = code;
         this.status = status;
         this.creationTime = creationTime;
         this.expirationTime = expirationTime;
+        this.description_operation = description_operation;
     }
 
     // Геттеры и сеттеры
@@ -35,6 +43,22 @@ public class OtpCode {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public long getUser_id() {
+        return user_id;
+    }
+
+    public long getOperationId() {
+        return operationId;
+    }
+
+    public String getDescription_operation() {
+        return description_operation;
+    }
+
+    public void setOperationId(long operationId) {
+        this.operationId = operationId;
     }
 
     public String getCode() {
@@ -74,10 +98,13 @@ public class OtpCode {
     public String toString() {
         return "OtpCode{" +
                 "id=" + id +
-                ", code='" + code + '\'' +
+                "user_id=" + user_id +
+                ", operation_id=" + operationId + // Включаем operationId в вывод
+                ", otp_code='" + code + '\'' +
                 ", status=" + status +
-                ", creationTime=" + creationTime +
-                ", expirationTime=" + expirationTime +
+                ", created_at=" + creationTime +
+                ", expires_at=" + expirationTime +
+                ", description_operation=" + description_operation +
                 '}';
     }
 }

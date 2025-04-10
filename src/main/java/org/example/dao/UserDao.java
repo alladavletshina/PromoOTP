@@ -57,11 +57,17 @@ public class UserDao {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+                // Получаем строку роли из базы данных
+                String roleStr = rs.getString("role");
+
+                // Преобразуем строку роли в объект перечисления Role
+                User.Role role = User.Role.valueOf(roleStr.toUpperCase());
+
                 return new User(
                         rs.getLong("id"),
                         rs.getString("username"),
                         rs.getString("password_hash"),
-                        rs.getString("role")
+                        role
                 );
             }
             return null; // Возвращаем null, если пользователь не найден

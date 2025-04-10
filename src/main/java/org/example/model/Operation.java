@@ -22,6 +22,12 @@ public class Operation {
         this.userId = userId;
     }
 
+    // Конструктор с параметрами
+    public Operation(String description, Long userId) {
+        this.description = description;
+        this.userId = userId;
+    }
+
     // Геттеры и сеттеры
     public Long getId() {
         return id;

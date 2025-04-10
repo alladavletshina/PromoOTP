@@ -24,8 +24,10 @@ public class OperationController {
         LocalDateTime expirationTime = currentTime.plusDays(5);
 
         //создан объект OTP кода
-        OtpCode otpCode = new OtpCode(generatedOtpCode, "ACTIVE", currentTime, expirationTime);
-        System.out.println("Сгенерирован OTP-код: " + otpCode.getCode());
+        OtpCode otpCode = new OtpCode(operation.getUserId(), operation.getId(), generatedOtpCode, "ACTIVE", currentTime, expirationTime, operation.getDescription());
+        System.out.println(operation.getUserId());
+
+        System.out.println("\nСгенерирован OTP-код: " + otpCode.getCode());
 
         System.out.print("\nЭлектронная почта: ");
         String email = getInput("");

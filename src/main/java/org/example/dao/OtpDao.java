@@ -30,10 +30,13 @@ public class OtpDao {
             while (rs.next()) {
                 OtpCode otpCode = new OtpCode(
                         rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        rs.getLong("operation_id"),
                         rs.getString("code"),
                         rs.getString("status"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
-                        rs.getTimestamp("expires_at") != null ? rs.getTimestamp("expires_at").toLocalDateTime() : null
+                        rs.getTimestamp("expires_at") != null ? rs.getTimestamp("expires_at").toLocalDateTime() : null,
+                        rs.getString("description_operation")
                 );
                 otpCodes.add(otpCode);
             }
@@ -43,35 +46,17 @@ public class OtpDao {
         return otpCodes;
     }
 
-    public OtpCode findOtpCodeById(long id) {
-        try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM otp_codes WHERE id = ?");
-            stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return new OtpCode(
-                        rs.getLong("id"),              // Идентификатор OTP-кода
-                        rs.getString("code"),          // Код OTP
-                        rs.getString("status"),  // Статус OTP-кода
-                        rs.getTimestamp("created_at").toLocalDateTime(),    // Время создания
-                        rs.getTimestamp("expires_at") != null ?
-                                rs.getTimestamp("expires_at").toLocalDateTime() :
-                                null  // Время истечения срока действия
-                );
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return null;
-    }
 
     public boolean saveOtpCode(OtpCode otpCode) {
         try {
-            PreparedStatement stmt = connection.prepareStatement("INSERT INTO otp_codes(code, status, created_at, expires_at) VALUES (?, ?, ?, ?)");
-            stmt.setString(1, otpCode.getCode());
-            stmt.setString(2, otpCode.getStatus().toString());
-            stmt.setObject(3, otpCode.getCreationTime());
-            stmt.setObject(4, otpCode.getExpirationTime());
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO otp_codes(user_id, operation_id, otp_code, status, created_at, expires_at, description_operation) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            stmt.setLong(1, otpCode.getUser_id());
+            stmt.setLong(2, otpCode.getOperationId());
+            stmt.setString(3, otpCode.getCode());
+            stmt.setString(4, otpCode.getStatus());
+            stmt.setObject(5, otpCode.getCreationTime());
+            stmt.setObject(6, otpCode.getExpirationTime());
+            stmt.setString(7, otpCode.getDescription_operation());
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {

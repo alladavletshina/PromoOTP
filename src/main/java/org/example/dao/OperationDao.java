@@ -62,8 +62,8 @@ public class OperationDao {
     public boolean saveOperation(Operation operation) {
         try {
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO operations(description, user_id) VALUES (?, ?)");
-            stmt.setString(1, operation.getDescription());
-            stmt.setLong(2, operation.getUserId());
+            stmt.setString(2, operation.getDescription());
+            stmt.setLong(3, operation.getUserId());
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {

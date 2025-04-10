@@ -22,7 +22,6 @@ public class UserService {
     }
 
     public boolean addUser(User user) {
-        // Можно добавить проверку валидности пользователя перед сохранением
         return userDao.saveUser(user);
     }
 

@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dao.OperationDao;
 import org.example.dao.OtpDao;
 import org.example.dao.UserDao;
 import org.example.model.Operation;
@@ -29,7 +30,7 @@ public class OtpService {
     }
 
     public void initiateOperationToEmail(String toEmail, OtpCode otpCode) {
-        emailService.sendCode(toEmail, otpCode.getCode());
+        //emailService.sendCode(toEmail, otpCode.getCode());
         otpDao.saveOtpCode(otpCode);
     }
 

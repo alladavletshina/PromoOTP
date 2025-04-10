@@ -46,6 +46,7 @@ public class Main {
 
             // Определение роли пользователя
             User.Role role = userService.getRole(name);
+
             if (role == User.Role.ADMIN) {
                 runAdminInterface(adminController);
             } else {
@@ -144,7 +145,7 @@ public class Main {
                             System.out.println("Выход.");
                             return;
                     }
-
+                    break;
                 case 4:
                     //verifyOtpCode(operationController);
                     operationController.verifyOtpCode("john@example.com", "123456");
