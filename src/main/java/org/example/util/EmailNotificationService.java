@@ -69,8 +69,4 @@ public class EmailNotificationService {
             throw new RuntimeException("Failed to send email", e);
         }
     }
-
-    public String getUserEmail() {
-        return "example@email.com";
-    }
 }

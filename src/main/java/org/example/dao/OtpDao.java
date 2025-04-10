@@ -31,7 +31,7 @@ public class OtpDao {
                 OtpCode otpCode = new OtpCode(
                         rs.getLong("id"),
                         rs.getString("code"),
-                        OtpCode.OtpStatus.valueOf(rs.getString("status")),
+                        rs.getString("status"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         rs.getTimestamp("expires_at") != null ? rs.getTimestamp("expires_at").toLocalDateTime() : null
                 );
@@ -52,7 +52,7 @@ public class OtpDao {
                 return new OtpCode(
                         rs.getLong("id"),              // Идентификатор OTP-кода
                         rs.getString("code"),          // Код OTP
-                        OtpCode.OtpStatus.valueOf(rs.getString("status")),  // Статус OTP-кода
+                        rs.getString("status"),  // Статус OTP-кода
                         rs.getTimestamp("created_at").toLocalDateTime(),    // Время создания
                         rs.getTimestamp("expires_at") != null ?
                                 rs.getTimestamp("expires_at").toLocalDateTime() :

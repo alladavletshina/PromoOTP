@@ -1,7 +1,12 @@
 package org.example.api;
 
+import org.example.model.OtpCode;
 import org.example.service.OtpService;
 import org.example.model.Operation;
+
+import java.time.LocalDateTime;
+
+import static org.example.Main.getInput;
 
 public class OperationController {
 
@@ -11,15 +16,29 @@ public class OperationController {
         this.otpService = otpService;
     }
 
-    public void initiateProtectedOperation(Operation operation) {
-        System.out.println("Инициирована защищённая операция: " + operation.getDescription() + " для пользователя " + operation.getUserEmail());
+    public void initiateProtectedOperationToEmail(Operation operation) {
 
-        // Генерация OTP-кода для данной операции
-        String generatedOtpCode = otpService.generateOtpCodeForUser(operation.getUserEmail());
-        System.out.println("Сгенерирован OTP-код: " + generatedOtpCode);
+        //данные для генерации OTP кода
+        String generatedOtpCode = otpService.generateOtpCode();
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime expirationTime = currentTime.plusDays(5);
 
-        // Отправка OTP-кода через выбранный канал (например, Email/SMS/Telegram)
-        otpService.sendOtpCodeToUser(operation.getUserEmail(), generatedOtpCode);
+        //создан объект OTP кода
+        OtpCode otpCode = new OtpCode(generatedOtpCode, "ACTIVE", currentTime, expirationTime);
+        System.out.println("Сгенерирован OTP-код: " + otpCode.getCode());
+
+        System.out.print("\nЭлектронная почта: ");
+        String email = getInput("");
+
+        System.out.println("\nИнициирована защищённая операция: " + operation.getDescription());
+
+        try {
+            otpService.initiateOperationToEmail(email, otpCode);
+            System.out.println("OTP-код отправлен на вашу электронную почту.");
+        } catch (Exception e) {
+            System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
+        }
+
     }
 
     public void verifyOtpCode(String userEmail, String otpCode) {

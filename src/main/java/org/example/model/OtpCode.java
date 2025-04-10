@@ -6,20 +6,22 @@ public class OtpCode {
 
     private long id;
     private String code;
-    private OtpStatus status;
+    private String status;
     private LocalDateTime creationTime;
     private LocalDateTime expirationTime;
-
-    // Перечисление для статусов OTP-кода
-    public enum OtpStatus {
-        ACTIVE, EXPIRED, USED
-    }
 
     // Конструкторы
     public OtpCode() {} // Необходимый пустой конструктор для JDBC
 
-    public OtpCode(long id, String code, OtpStatus status, LocalDateTime creationTime, LocalDateTime expirationTime) {
+    public OtpCode(long id, String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime) {
         this.id = id;
+        this.code = code;
+        this.status = status;
+        this.creationTime = creationTime;
+        this.expirationTime = expirationTime;
+    }
+
+    public OtpCode(String code, String status, LocalDateTime creationTime, LocalDateTime expirationTime) {
         this.code = code;
         this.status = status;
         this.creationTime = creationTime;
@@ -43,11 +45,11 @@ public class OtpCode {
         this.code = code;
     }
 
-    public OtpStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(OtpStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -65,19 +67,6 @@ public class OtpCode {
 
     public void setExpirationTime(LocalDateTime expirationTime) {
         this.expirationTime = expirationTime;
-    }
-
-    // Методы для проверки состояния OTP-кода
-    public boolean isActive() {
-        return status == OtpStatus.ACTIVE;
-    }
-
-    public boolean isExpired() {
-        return status == OtpStatus.EXPIRED || LocalDateTime.now().isAfter(expirationTime);
-    }
-
-    public boolean isUsed() {
-        return status == OtpStatus.USED;
     }
 
     // Переопределённый метод toString для удобного вывода

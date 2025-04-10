@@ -1,6 +1,5 @@
 package org.example.api;
 
-import org.example.dao.UserDao;
 import org.example.model.User;
 import org.example.service.OtpService;
 import org.example.service.UserService;
@@ -34,8 +33,20 @@ public class UserController {
         }
     }
 
-    public void loginUser(String name, String password) {
-        System.out.println("Авторизация пользователя: " + name);
-        // Логика авторизации пользователя
+    public User loginUser(String name, String password) {
+        try {
+            // Найденный пользователь
+            User user = userService.getUserByUsername(name, password);
+            if (user != null) {
+                System.out.println("Успешный вход.");
+                return user; // Возвращаем найденного пользователя
+            } else {
+                System.out.println("Пользователь не найден.");
+                return null; // Возвращаем null, если пользователь не найден
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка входа: " + e.getMessage());
+            return null; // Возвращаем null в случае ошибки
+        }
     }
 }

@@ -49,11 +49,13 @@ public class UserDao {
         return users;
     }
 
-    public User findUserByUsername(String username) {
+    public User findUserByUsername(String username, String password) {
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ? AND password_hash = ?");
             stmt.setString(1, username);
+            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
+
             if (rs.next()) {
                 return new User(
                         rs.getLong("id"),
@@ -62,10 +64,10 @@ public class UserDao {
                         rs.getString("role")
                 );
             }
+            return null; // Возвращаем null, если пользователь не найден
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     public boolean saveUser(User user) {

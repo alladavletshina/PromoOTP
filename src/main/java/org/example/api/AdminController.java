@@ -54,4 +54,18 @@ public class AdminController {
         }
     }
 
+    private void changeOtpConfig(AdminController controller) {
+        System.out.print("Время жизни OTP-кода (минуты): ");
+        int timeToLive = Integer.parseInt(getInput(""));
+        System.out.print("Длина OTP-кода: ");
+        int length = Integer.parseInt(getInput(""));
+
+        try {
+            controller.changeOtpConfig(timeToLive, length);
+            System.out.println("Конфигурация OTP-кодов обновлена.");
+        } catch (Exception e) {
+            System.out.println("Ошибка обновления конфигурации: " + e.getMessage());
+        }
+    }
+
 }

@@ -1,6 +1,9 @@
 package org.example.service;
 
+import org.example.dao.OtpDao;
+import org.example.dao.UserDao;
 import org.example.model.Operation;
+import org.example.model.OtpCode;
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
@@ -8,29 +11,26 @@ import org.example.util.TelegramBot;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+
 public class OtpService {
 
     private final EmailNotificationService emailService;
-    private final SmppClient smsSender;
-    private final TelegramBot telegramBot;
+    private final OtpDao otpDao;
+    //private final SmppClient smsSender;
+    //private final TelegramBot telegramBot;
 
     // Конфигурационные параметры для OTP-кодов
     private int otpCodeLength = 6; // Длина OTP-кода
     private int otpLifetimeInMinutes = 10; // Время жизни OTP-кода в минутах
 
-    public OtpService(EmailNotificationService emailService, SmppClient smsSender, TelegramBot telegramBot) {
+    public OtpService(EmailNotificationService emailService, OtpDao otpDao) {
         this.emailService = emailService;
-        this.smsSender = smsSender;
-        this.telegramBot = telegramBot;
+        this.otpDao = otpDao;
     }
 
-    public void initiateOperation(Operation operation) {
-        // Генерируем уникальный OTP-код для этой операции
-        String otpCode = generateOtpCode();
-        // Сохраняем OTP-код в базу данных (здесь заглушка)
-        System.out.println("Сохранён OTP-код для операции: " + operation.getDescription());
-        // Отправляем OTP-код пользователю через выбранный канал
-        sendOtpCodeToUser(operation.getUserEmail(), otpCode);
+    public void initiateOperationToEmail(String toEmail, OtpCode otpCode) {
+        emailService.sendCode(toEmail, otpCode.getCode());
+        otpDao.saveOtpCode(otpCode);
     }
 
     public void completeOperation(Long operationId) {
@@ -38,15 +38,7 @@ public class OtpService {
         System.out.println("Операция с ID " + operationId + " завершена.");
     }
 
-    public String generateOtpCodeForUser(String userEmail) {
-        // Генерируем уникальный OTP-код
-        String otpCode = generateOtpCode();
-        // Отправляем OTP-код пользователю через выбранный канал
-        sendOtpCodeToUser(userEmail, otpCode);
-        return otpCode; // Возвращаем сгенерированный OTP-код
-    }
-
-    private String generateOtpCode() {
+    public String generateOtpCode() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < otpCodeLength; i++) {
@@ -55,13 +47,6 @@ public class OtpService {
         return sb.toString();
     }
 
-    // Изменяем видимость метода на публичную
-    public void sendOtpCodeToUser(String userEmail, String otpCode) {
-        // Выбор канала отправки зависит от предпочтений пользователя
-        // Здесь мы предполагаем, что используется Email
-        //emailService.sendEmail(userEmail, "Ваш защитный код", "Ваш защитный код: " + otpCode);
-        System.out.println("Защитный код отправлен на почту: " + userEmail);
-    }
 
     public boolean checkOtpCode(String userEmail, String otpCode) {
         // Проверяем OTP-код, сравнивая с сохранённым (здесь заглушка)
