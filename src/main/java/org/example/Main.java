@@ -24,13 +24,13 @@ public class Main {
     public static void main(String[] args) {
 
         // Создание общих объектов сервисов и контроллеров
-        EmailNotificationService emailService = new EmailNotificationService();
         TelegramBot telegramBot = new TelegramBot();
         UserDao userDao = new UserDao();
         OtpDao otpDao = new OtpDao();
         SmppClient smsSender = new SmppClient();
+        EmailNotificationService emailService = new EmailNotificationService();
         UserService userService = new UserService(userDao);
-        OtpService otpService = new OtpService(emailService, otpDao);
+        OtpService otpService = new OtpService(emailService, otpDao, smsSender);
 
         UserController userController = new UserController(userService, otpService);
         OperationController operationController = new OperationController(otpService);
@@ -137,7 +137,7 @@ public class Main {
                             operationController.initiateProtectedOperationToEmail(operation);
                             break;
                         case 2:
-                            System.out.println("здесь будет код");
+                            operationController.initiateProtectedOperationToSmpp(operation);
                             break;
                         case 3:
                             System.out.println("здесь будет код");

@@ -19,6 +19,40 @@ public class OperationController {
         this.otpService = otpService;
     }
 
+    public void initiateProtectedOperationToSmpp(Operation operation) {
+
+        //данные для генерации OTP кода
+        int CodeLength = otpService.getCodeLength();
+        int lifeTimeInMinutes = otpService.getLifeTimeInMinutes();
+
+        String generatedOtpCode = otpService.generateOtpCode(CodeLength);
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime expirationTime = currentTime.plusMinutes(lifeTimeInMinutes);
+
+        //создан объект OTP кода
+        OtpCode otpCode = new OtpCode(
+                operation.getUserId(),
+                operation.getId(),
+                generatedOtpCode,
+                "ACTIVE",
+                currentTime,
+                expirationTime,
+                operation.getDescription());
+
+        System.out.println("\nСгенерирован OTP-код: " + otpCode.getCode());
+
+        System.out.println("\nИнициирована защищённая операция: " + operation.getDescription());
+
+        String destination = " +79150887621.";
+
+        try {
+            otpService.initiateOperationToSmpp(destination, otpCode);
+            System.out.println("OTP-код отправлен на ваш номер " + destination);
+        } catch (Exception e) {
+            System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
+        }
+    }
+
     public void initiateProtectedOperationToEmail(Operation operation) {
 
         //данные для генерации OTP кода
@@ -52,7 +86,6 @@ public class OperationController {
         } catch (Exception e) {
             System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
         }
-
     }
 
     // Метод для сохранения всех данных OTP-кода в файл в текущей директории

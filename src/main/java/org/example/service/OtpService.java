@@ -17,20 +17,27 @@ public class OtpService {
 
     private final EmailNotificationService emailService;
     private final OtpDao otpDao;
-    //private final SmppClient smsSender;
+    private final SmppClient smsSender;
     //private final TelegramBot telegramBot;
 
     // Конфигурационные параметры для OTP-кодов
     private int otpCodeLength = 6; // Длина OTP-кода
     private int otpLifetimeInMinutes = 10; // Время жизни OTP-кода в минутах
 
-    public OtpService(EmailNotificationService emailService, OtpDao otpDao) {
+    public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender) {
         this.emailService = emailService;
         this.otpDao = otpDao;
+        this.smsSender = smsSender;
     }
 
     public void initiateOperationToEmail(String toEmail, OtpCode otpCode) {
         //emailService.sendCode(toEmail, otpCode.getCode());
+        otpDao.saveOtpCode(otpCode);
+    }
+
+    public void initiateOperationToSmpp(String destination, OtpCode otpCode) {
+        smsSender.loadProperties();
+        smsSender.sendSms(destination, otpCode.getCode());
         otpDao.saveOtpCode(otpCode);
     }
 
