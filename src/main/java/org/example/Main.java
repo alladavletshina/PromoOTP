@@ -70,7 +70,7 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    System.out.println("здесь будет код");
+                    adminController.changeOtpConfig();
                     break;
                 case 2:
                     adminController.listUsers();

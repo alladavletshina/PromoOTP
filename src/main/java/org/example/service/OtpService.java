@@ -34,16 +34,19 @@ public class OtpService {
         otpDao.saveOtpCode(otpCode);
     }
 
+    public int getCodeLength() {
+        return otpDao.getCodeLength();
+    }
+
+    public int getLifeTimeInMinutes() {
+        return otpDao.getLifeTimeInMinutes();
+    }
+
     public void saveOtpCodeToFile(OtpCode otpCode) {
         otpDao.saveOtpCode(otpCode);
     }
 
-    public void completeOperation(Long operationId) {
-        // Проверяем статус операции и завершаем её (здесь заглушка)
-        System.out.println("Операция с ID " + operationId + " завершена.");
-    }
-
-    public String generateOtpCode() {
+    public String generateOtpCode(int otpCodeLength) {
         Random random = new Random();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < otpCodeLength; i++) {
@@ -51,7 +54,6 @@ public class OtpService {
         }
         return sb.toString();
     }
-
 
     public boolean checkOtpCode(String userEmail, String otpCode) {
         // Проверяем OTP-код, сравнивая с сохранённым (здесь заглушка)
@@ -64,5 +66,6 @@ public class OtpService {
         this.otpCodeLength = newCodeLength;
         this.otpLifetimeInMinutes = newLifetimeInMinutes;
         System.out.println("Новая конфигурация OTP-кодов установлена: длина кода " + newCodeLength + ", время жизни " + newLifetimeInMinutes + " минут.");
+        otpDao.changeOtpConfig(newCodeLength, newLifetimeInMinutes);
     }
 }

@@ -46,6 +46,36 @@ public class OtpDao {
         return otpCodes;
     }
 
+    public int getCodeLength() {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT codelength FROM otp_config");
+            ResultSet resultSet = stmt.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt("codelength");
+            } else {
+                throw new RuntimeException("Не удалось получить длину кода.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int getLifeTimeInMinutes() {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT lifetimeinminutes FROM otp_config");
+            ResultSet resultSet = stmt.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt("lifetimeinminutes");
+            } else {
+                throw new RuntimeException("Не удалось получить длину кода.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public boolean saveOtpCode(OtpCode otpCode) {
         try {
@@ -74,6 +104,22 @@ public class OtpDao {
             return rowsAffected > 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void changeOtpConfig(int otpCodeLength, int otpLifetimeInMinutes) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("UPDATE otp_config SET codelength = ?, lifetimeinminutes = ? WHERE id = 1");
+            stmt.setInt(1, otpCodeLength);
+            stmt.setInt(2, otpLifetimeInMinutes);
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Конфигурация успешно обновлена.");
+            } else {
+                System.out.println("Не удалось обновить конфигурацию.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при обновлении конфигурации: " + e.getMessage());
         }
     }
 

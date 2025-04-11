@@ -22,9 +22,12 @@ public class OperationController {
     public void initiateProtectedOperationToEmail(Operation operation) {
 
         //данные для генерации OTP кода
-        String generatedOtpCode = otpService.generateOtpCode();
+        int CodeLength = otpService.getCodeLength();
+        int lifeTimeInMinutes = otpService.getLifeTimeInMinutes();
+
+        String generatedOtpCode = otpService.generateOtpCode(CodeLength);
         LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime expirationTime = currentTime.plusDays(5);
+        LocalDateTime expirationTime = currentTime.plusMinutes(lifeTimeInMinutes);
 
         //создан объект OTP кода
         OtpCode otpCode = new OtpCode(
@@ -55,9 +58,12 @@ public class OperationController {
     // Метод для сохранения всех данных OTP-кода в файл в текущей директории
     public void saveOtpCodeToFile(Operation operation) {
         // Данные для генерации OTP-кода
-        String generatedOtpCode = otpService.generateOtpCode();
+        int CodeLength = otpService.getCodeLength();
+        int lifeTimeInMinutes = otpService.getLifeTimeInMinutes();
+
+        String generatedOtpCode = otpService.generateOtpCode(CodeLength);
         LocalDateTime currentTime = LocalDateTime.now();
-        LocalDateTime expirationTime = currentTime.plusDays(5);
+        LocalDateTime expirationTime = currentTime.plusMinutes(lifeTimeInMinutes);
 
         //создан объект OTP кода
         OtpCode otpCode = new OtpCode(

@@ -20,10 +20,21 @@ public class AdminController {
         this.otpService = otpService;
     }
 
-    public void changeOtpConfig(int lifetimeInMinutes, int codeLength) {
-        System.out.println("Изменена конфигурация OTP-кодов: время жизни " + lifetimeInMinutes +
-                " минут, длина кода " + codeLength + " символов.");
-        // Логика изменения конфигурации OTP-кодов
+    public void changeOtpConfig() {
+
+        System.out.println("Укажите новую конфигурацию OTP-кодов:");
+
+        System.out.print("Длина OTP-кода: ");
+        int codeLength = Integer.parseInt(getInput(""));
+
+        System.out.print("Время жизни OTP-кода (минуты): ");
+        int lifetimeInMinutes = Integer.parseInt(getInput(""));
+
+        try {
+            otpService.changeOtpConfig(codeLength, lifetimeInMinutes);
+        } catch (Exception e) {
+            System.out.println("Ошибка обновления конфигурации: " + e.getMessage());
+        }
     }
 
     public void listUsers() {
@@ -51,20 +62,6 @@ public class AdminController {
             System.out.println("Пользователь удалён.");
         } catch (Exception e) {
             System.out.println("Ошибка удаления пользователя: " + e.getMessage());
-        }
-    }
-
-    private void changeOtpConfig(AdminController controller) {
-        System.out.print("Время жизни OTP-кода (минуты): ");
-        int timeToLive = Integer.parseInt(getInput(""));
-        System.out.print("Длина OTP-кода: ");
-        int length = Integer.parseInt(getInput(""));
-
-        try {
-            controller.changeOtpConfig(timeToLive, length);
-            System.out.println("Конфигурация OTP-кодов обновлена.");
-        } catch (Exception e) {
-            System.out.println("Ошибка обновления конфигурации: " + e.getMessage());
         }
     }
 
