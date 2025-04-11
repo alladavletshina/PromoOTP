@@ -32,7 +32,7 @@ public class OtpDao {
                         rs.getLong("id"),
                         rs.getLong("user_id"),
                         rs.getLong("operation_id"),
-                        rs.getString("code"),
+                        rs.getString("otp_code"),
                         rs.getString("status"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         rs.getTimestamp("expires_at") != null ? rs.getTimestamp("expires_at").toLocalDateTime() : null,
@@ -94,14 +94,12 @@ public class OtpDao {
         }
     }
 
-    public boolean updateOtpCode(OtpCode otpCode) {
+    public void updateOtpCodeStatus(OtpCode otpCode) {
         try {
-            PreparedStatement stmt = connection.prepareStatement("UPDATE otp_codes SET status = ?, expires_at = ? WHERE id = ?");
-            stmt.setString(1, otpCode.getStatus().toString());
-            stmt.setObject(2, otpCode.getExpirationTime());
-            stmt.setLong(3, otpCode.getId());
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            PreparedStatement stmt = connection.prepareStatement("UPDATE otp_codes SET status = ? WHERE id = ?");
+            stmt.setString(1, otpCode.getStatus());
+            stmt.setLong(2, otpCode.getId());
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

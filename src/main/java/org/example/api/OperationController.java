@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.example.Main.getInput;
 
@@ -134,14 +135,36 @@ public class OperationController {
         System.out.println("\nВсе данные OTP-кода успешно сохранены в файл: " + filePath);
     }
 
-    public void verifyOtpCode(String userEmail, String otpCode) {
-        System.out.println("Проверка OTP-кода для пользователя " + userEmail + ". Код: " + otpCode);
+    public void verifyOtpCode(String username, String otpCode) {
+        System.out.println("Проверка OTP-кода для пользователя " + username + ". Код: " + otpCode);
 
-        boolean isValid = otpService.checkOtpCode(userEmail, otpCode);
+        boolean isValid = otpService.checkOtpCode(username, otpCode);
         if (isValid) {
             System.out.println("OTP-код верен. Операция разрешена.");
         } else {
             System.out.println("OTP-код неверен. Операция отклонена.");
         }
+    }
+
+    private static void verifyOtpCode(OtpCode otpCode) {
+        System.out.print("OTP-код: ");
+        String code = getInput("");
+
+        try {
+            //boolean isValid = controller.verifyOtpCode(email, code);
+            boolean isValid = true;
+            if (isValid) {
+                System.out.println("Код введен верно!");
+            } else {
+                System.out.println("Неверный код!");
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка проверки OTP-кода: " + e.getMessage());
+        }
+    }
+
+    public void processExpiredOtpCodes() {
+        List<OtpCode> otpCodesNew = otpService.findAllOtpCodes();
+        otpService.processExpiredOtpCodes(otpCodesNew);
     }
 }

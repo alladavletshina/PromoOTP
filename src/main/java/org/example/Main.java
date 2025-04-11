@@ -1,6 +1,5 @@
 package org.example;
 
-import com.sun.jdi.OpaqueFrameException;
 import org.example.api.AdminController;
 import org.example.api.UserController;
 import org.example.dao.OtpDao;
@@ -39,6 +38,9 @@ public class Main {
         System.out.println("Добро пожаловать! Пожалуйста, войдите в систему.");
         String name = getInput("Укажите имя: ");
         String password = getInput("Пароль: ");
+
+        // обновление статусов OTP кодов при каждом входе в приложение
+        operationController.processExpiredOtpCodes();
 
         try {
             // Логин пользователя
@@ -151,7 +153,6 @@ public class Main {
                     }
                     break;
                 case 4:
-                    //verifyOtpCode(operationController);
                     operationController.verifyOtpCode("john@example.com", "123456");
                     break;
                 case 0:

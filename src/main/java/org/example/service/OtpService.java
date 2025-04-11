@@ -1,8 +1,6 @@
 package org.example.service;
 
-import org.example.dao.OperationDao;
 import org.example.dao.OtpDao;
-import org.example.dao.UserDao;
 import org.example.model.Operation;
 import org.example.model.OtpCode;
 import org.example.util.EmailNotificationService;
@@ -10,6 +8,7 @@ import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 
 
@@ -19,10 +18,6 @@ public class OtpService {
     private final OtpDao otpDao;
     private final SmppClient smsSender;
     //private final TelegramBot telegramBot;
-
-    // Конфигурационные параметры для OTP-кодов
-    private int otpCodeLength = 6; // Длина OTP-кода
-    private int otpLifetimeInMinutes = 10; // Время жизни OTP-кода в минутах
 
     public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender) {
         this.emailService = emailService;
@@ -69,9 +64,22 @@ public class OtpService {
         return true;
     }
 
+    public List<OtpCode> findAllOtpCodes() {
+        return otpDao.findAllOtpCodes();
+    }
+
+    public void processExpiredOtpCodes(List<OtpCode> otpCodes) {
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        for (OtpCode otpCode : otpCodes) {
+            if (currentTime.isAfter(otpCode.getExpirationTime())) {
+                otpCode.setStatus("EXPIRED");
+                otpDao.updateOtpCodeStatus(otpCode); // Обновляем статус в базе данных
+            }
+        }
+    }
+
     public void changeOtpConfig(int newCodeLength, int newLifetimeInMinutes) {
-        this.otpCodeLength = newCodeLength;
-        this.otpLifetimeInMinutes = newLifetimeInMinutes;
         System.out.println("Новая конфигурация OTP-кодов установлена: длина кода " + newCodeLength + ", время жизни " + newLifetimeInMinutes + " минут.");
         otpDao.changeOtpConfig(newCodeLength, newLifetimeInMinutes);
     }
