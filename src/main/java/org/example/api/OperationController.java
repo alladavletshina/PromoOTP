@@ -3,7 +3,10 @@ package org.example.api;
 import org.example.model.OtpCode;
 import org.example.service.OtpService;
 import org.example.model.Operation;
+import org.json.JSONObject;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 import static org.example.Main.getInput;
@@ -24,8 +27,14 @@ public class OperationController {
         LocalDateTime expirationTime = currentTime.plusDays(5);
 
         //создан объект OTP кода
-        OtpCode otpCode = new OtpCode(operation.getUserId(), operation.getId(), generatedOtpCode, "ACTIVE", currentTime, expirationTime, operation.getDescription());
-        System.out.println(operation.getUserId());
+        OtpCode otpCode = new OtpCode(
+                operation.getUserId(),
+                operation.getId(),
+                generatedOtpCode,
+                "ACTIVE",
+                currentTime,
+                expirationTime,
+                operation.getDescription());
 
         System.out.println("\nСгенерирован OTP-код: " + otpCode.getCode());
 
@@ -41,6 +50,49 @@ public class OperationController {
             System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
         }
 
+    }
+
+    // Метод для сохранения всех данных OTP-кода в файл в текущей директории
+    public void saveOtpCodeToFile(Operation operation) {
+        // Данные для генерации OTP-кода
+        String generatedOtpCode = otpService.generateOtpCode();
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime expirationTime = currentTime.plusDays(5);
+
+        //создан объект OTP кода
+        OtpCode otpCode = new OtpCode(
+                operation.getUserId(),
+                operation.getId(),
+                generatedOtpCode,
+                "ACTIVE",
+                currentTime,
+                expirationTime,
+                operation.getDescription());
+
+        System.out.println("\nСгенерирован OTP-код: " + otpCode.getCode());
+
+        System.out.println("\nИнициирована защищённая операция: " + operation.getDescription());
+
+        otpService.saveOtpCodeToFile(otpCode);
+
+        // Указываем относительный путь к файлу в текущей директории
+        String fileName = "otp_code.txt";
+        String filePath = System.getProperty("user.dir") + "/" + fileName;
+
+        // Преобразуем объект OtpCode в JSON
+        JSONObject jsonObject = new JSONObject(otpCode);
+        String jsonData = jsonObject.toString();
+
+        // Открываем файл для записи и перезаписи информации
+        try (FileWriter writer = new FileWriter(filePath, false)) {
+            writer.write(jsonData);
+            writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Информируем пользователя о сохранении данных
+        System.out.println("\nВсе данные OTP-кода успешно сохранены в файл: " + filePath);
     }
 
     public void verifyOtpCode(String userEmail, String otpCode) {

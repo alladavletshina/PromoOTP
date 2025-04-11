@@ -34,6 +34,10 @@ public class OtpService {
         otpDao.saveOtpCode(otpCode);
     }
 
+    public void saveOtpCodeToFile(OtpCode otpCode) {
+        otpDao.saveOtpCode(otpCode);
+    }
+
     public void completeOperation(Long operationId) {
         // Проверяем статус операции и завершаем её (здесь заглушка)
         System.out.println("Операция с ID " + operationId + " завершена.");

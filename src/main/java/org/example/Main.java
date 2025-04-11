@@ -127,6 +127,7 @@ public class Main {
                     System.out.println("1. Электронная почта");
                     System.out.println("2. Смс");
                     System.out.println("3. Телеграмм");
+                    System.out.println("4. Сохранить в файл");
                     System.out.println("0. Выход");
 
                     int choice_ = Integer.parseInt(getInput("Ваш выбор: "));
@@ -140,6 +141,9 @@ public class Main {
                             break;
                         case 3:
                             System.out.println("здесь будет код");
+                            break;
+                        case 4:
+                            operationController.saveOtpCodeToFile(operation);
                             break;
                         case 0:
                             System.out.println("Выход.");
