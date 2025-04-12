@@ -20,7 +20,7 @@ public class OperationController {
         this.otpService = otpService;
     }
 
-    public void initiateProtectedOperationToSmpp(Operation operation) {
+    public void initiateProtectedOperationToSmpp(Operation operation, String token) {
 
         //данные для генерации OTP кода
         int CodeLength = otpService.getCodeLength();
@@ -54,7 +54,7 @@ public class OperationController {
         }
     }
 
-    public void initiateProtectedOperationToEmail(Operation operation) {
+    public void initiateProtectedOperationToEmail(Operation operation, String token) {
 
         //данные для генерации OTP кода
         int CodeLength = otpService.getCodeLength();
@@ -90,7 +90,7 @@ public class OperationController {
     }
 
     // Метод для сохранения всех данных OTP-кода в файл в текущей директории
-    public void saveOtpCodeToFile(Operation operation) {
+    public void saveOtpCodeToFile(Operation operation, String token) {
         // Данные для генерации OTP-кода
         int CodeLength = otpService.getCodeLength();
         int lifeTimeInMinutes = otpService.getLifeTimeInMinutes();
@@ -146,7 +146,7 @@ public class OperationController {
         }
     }
 
-    public void verifyOtpCode() {
+    public void verifyOtpCode(String token) {
         System.out.print("OTP-код: ");
         String code = getInput("");
 

@@ -20,7 +20,7 @@ public class AdminController {
         this.otpService = otpService;
     }
 
-    public void changeOtpConfig() {
+    public void changeOtpConfig(String token) {
 
         System.out.println("Укажите новую конфигурацию OTP-кодов:");
 
@@ -37,7 +37,7 @@ public class AdminController {
         }
     }
 
-    public void listUsers() {
+    public void listUsers(String token) {
 
         List<User> allUsers = userService.getAllUsers();
 
@@ -53,7 +53,7 @@ public class AdminController {
         }
     }
 
-    public void deleteUser() {
+    public void deleteUser(String token) {
         System.out.print("Введите id пользователя для удаления: ");
         long id = Long.parseLong(getInput(""));
 
