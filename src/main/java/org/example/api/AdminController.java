@@ -1,7 +1,5 @@
 package org.example.api;
 
-import org.example.dao.UserDao;
-import org.example.model.OtpCode;
 import org.example.model.User;
 import org.example.service.OtpService;
 import org.example.service.UserService;
@@ -65,18 +63,4 @@ public class AdminController {
             System.out.println("Ошибка удаления пользователя: " + e.getMessage());
         }
     }
-
-    public void processExpiredOtpCodes() {
-        List<OtpCode> otpCodesNew = otpService.findAllOtpCodes();
-        otpService.processExpiredOtpCodes(otpCodesNew);
-    }
-
-    public void initScheduler() {
-        otpService.initScheduler();
-    }
-
-    public void shutdown() {
-        otpService.shutdown();
-    }
-
 }

@@ -25,8 +25,12 @@ public class UserDao {
     public List<User> findAllUsers() {
         List<User> users = new ArrayList<>();
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users");
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE role = ?");
+
+            stmt.setString(1, "USER");
+
             ResultSet rs = stmt.executeQuery();
+
             while (rs.next()) {
                 // Получаем строку роли из базы данных
                 String roleStr = rs.getString("role");

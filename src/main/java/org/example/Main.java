@@ -13,8 +13,16 @@ import org.example.service.OtpService;
 import org.example.service.UserService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
 
 public class Main {
 
@@ -60,7 +68,7 @@ public class Main {
                     User.Role role = userService.getRole(name);
 
                     if (role == User.Role.ADMIN) {
-                        runAdminInterface(adminController, token);
+                        runAdminInterface(adminController, otpService, token);
                     } else {
                         runUserInterface(userController, token, loggedInUser);
                     }
@@ -74,9 +82,9 @@ public class Main {
     }
 
     // Метод для запуска интерфейса администратора
-    private static void runAdminInterface(AdminController adminController, String token) {
+    private static void runAdminInterface(AdminController adminController, OtpService otpService, String token) {
         //старт планировщика
-        adminController.initScheduler();
+        otpService.initScheduler();
 
         while (true) {
             System.out.println("\nВыберите действие:");
@@ -97,7 +105,8 @@ public class Main {
                     break;
                 case 2:
                     if (checkTokenValidity(token)) {
-                        adminController.listUsers(token);
+                        //adminController.listUsers(token);
+                        callListUsersApi(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
@@ -111,7 +120,7 @@ public class Main {
                     break;
                 case 0:
                     // Остановка планировщика задач
-                    adminController.shutdown();
+                    otpService.shutdown();
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
@@ -227,6 +236,53 @@ public class Main {
             // Если произошла ошибка при разборе токена, считаем его недействительным
             System.out.println("Ошибка при проверке токена: " + e.getMessage());
             return false;
+        }
+    }
+
+    // Вызов API для получения списка пользователей
+    private static void callListUsersApi(String token) {
+        try {
+            URL url = new URL("http://localhost:8000/admin/list-users");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                StringBuilder response = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    response.append(line).append("\n");
+                }
+                System.out.println("Список пользователей:\n" + response.toString());
+            } else {
+                System.out.println("Ошибка получения списка пользователей: " + conn.getResponseMessage());
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка соединения с API: " + e.getMessage());
+        }
+    }
+
+    // Вызов API для удаления пользователя
+    private void callDeleteUserApi(String token) {
+        try {
+            System.out.print("Введите id пользователя для удаления: ");
+            long userId = Long.parseLong(getInput(""));
+
+            URL url = new URL("http://localhost:8000/admin/delete-user/" + userId);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Пользователь удален успешно.");
+            } else {
+                System.out.println("Ошибка удаления пользователя: " + conn.getResponseMessage());
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 }
