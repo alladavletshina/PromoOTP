@@ -120,9 +120,8 @@ public class Main {
         while (true) {
             System.out.println("\nВыберите действие:");
             System.out.println("1. Зарегистрироваться");
-            System.out.println("2. Войти");
-            System.out.println("3. Иницировать операцию и отправить OTP-код");
-            System.out.println("4. Проверить OTP-код");
+            System.out.println("2. Иницировать операцию и отправить OTP-код");
+            System.out.println("3. Проверить OTP-код");
             System.out.println("0. Выход");
 
             int choice = Integer.parseInt(getInput("Ваш выбор: "));
@@ -132,9 +131,6 @@ public class Main {
                     userController.registerUser();
                     break;
                 case 2:
-                    // Логин пользователя уже выполнен в main
-                    break;
-                case 3:
                     if (checkTokenValidity(token)) {
                         // Данные для создания операции
                         System.out.print("ID операции: ");
@@ -177,7 +173,7 @@ public class Main {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
-                case 4:
+                case 3:
                     if (checkTokenValidity(token)) {
                         operationController.verifyOtpCode(token);
                     } else {
