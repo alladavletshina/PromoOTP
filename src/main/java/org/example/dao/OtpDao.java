@@ -131,4 +131,25 @@ public class OtpDao {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean getOtpCode(String id) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM otp_codes WHERE otp_code = ?");
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Проверяем статус OTP-кода
+                String status = rs.getString("status");
+                if ("ACTIVE".equalsIgnoreCase(status)) {
+                    return true; // OTP-код активен
+                } else {
+                    return false; // OTP-код неактивен или просрочен
+                }
+            }
+            return false; // OTP-код не найден
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

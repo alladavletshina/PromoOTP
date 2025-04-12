@@ -146,13 +146,12 @@ public class OperationController {
         }
     }
 
-    private static void verifyOtpCode(OtpCode otpCode) {
+    public void verifyOtpCode() {
         System.out.print("OTP-код: ");
         String code = getInput("");
 
         try {
-            //boolean isValid = controller.verifyOtpCode(email, code);
-            boolean isValid = true;
+            boolean isValid = otpService.getOtpCode(code);
             if (isValid) {
                 System.out.println("Код введен верно!");
             } else {

@@ -7,6 +7,8 @@ import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -77,6 +79,10 @@ public class OtpService {
                 otpDao.updateOtpCodeStatus(otpCode); // Обновляем статус в базе данных
             }
         }
+    }
+
+    public boolean getOtpCode(String otpCode) {
+      return otpDao.getOtpCode(otpCode);
     }
 
     public void changeOtpConfig(int newCodeLength, int newLifetimeInMinutes) {

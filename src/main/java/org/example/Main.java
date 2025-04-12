@@ -153,7 +153,7 @@ public class Main {
                     }
                     break;
                 case 4:
-                    operationController.verifyOtpCode("john@example.com", "123456");
+                    operationController.verifyOtpCode();
                     break;
                 case 0:
                     System.out.println("Завершаем работу приложения.");
