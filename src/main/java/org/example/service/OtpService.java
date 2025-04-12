@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
 
 
 public class OtpService {
@@ -19,6 +22,7 @@ public class OtpService {
     private final EmailNotificationService emailService;
     private final OtpDao otpDao;
     private final SmppClient smsSender;
+    private ScheduledExecutorService scheduler;
     //private final TelegramBot telegramBot;
 
     public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender) {
@@ -79,6 +83,19 @@ public class OtpService {
                 otpDao.updateOtpCodeStatus(otpCode); // Обновляем статус в базе данных
             }
         }
+    }
+
+    public void initScheduler() {
+        int intervalInSeconds = 5000;
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleWithFixedDelay(() -> {
+            List<OtpCode> otpCodes = otpDao.findAllOtpCodes(); // Загружаем все OTP-коды из базы данных
+            processExpiredOtpCodes(otpCodes); // Обрабатываем просроченные OTP-коды
+        }, 0, intervalInSeconds, TimeUnit.SECONDS);
+    }
+
+    public void shutdown() {
+        scheduler.shutdownNow();
     }
 
     public boolean getOtpCode(String otpCode) {

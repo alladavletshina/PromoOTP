@@ -166,4 +166,12 @@ public class OperationController {
         List<OtpCode> otpCodesNew = otpService.findAllOtpCodes();
         otpService.processExpiredOtpCodes(otpCodesNew);
     }
+
+    public void initScheduler() {
+        otpService.initScheduler();
+    }
+
+    public void shutdown() {
+        otpService.shutdown();
+    }
 }

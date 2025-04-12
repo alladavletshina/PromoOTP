@@ -40,7 +40,10 @@ public class Main {
         String password = getInput("Пароль: ");
 
         // обновление статусов OTP кодов при каждом входе в приложение
-        operationController.processExpiredOtpCodes();
+        //operationController.processExpiredOtpCodes();
+
+        // Запуск планирровщика
+        operationController.initScheduler();
 
         try {
             // Логин пользователя
@@ -156,6 +159,8 @@ public class Main {
                     operationController.verifyOtpCode();
                     break;
                 case 0:
+                    // Остановка планировщика задач
+                    operationController.shutdown();
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
