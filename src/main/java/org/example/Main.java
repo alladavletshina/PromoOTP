@@ -113,7 +113,8 @@ public class Main {
                     break;
                 case 3:
                     if (checkTokenValidity(token)) {
-                        adminController.deleteUser(token);
+                        //adminController.deleteUser(token);
+                        callDeleteUserApi(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
@@ -265,7 +266,7 @@ public class Main {
     }
 
     // Вызов API для удаления пользователя
-    private void callDeleteUserApi(String token) {
+    private static void callDeleteUserApi(String token) {
         try {
             System.out.print("Введите id пользователя для удаления: ");
             long userId = Long.parseLong(getInput(""));
