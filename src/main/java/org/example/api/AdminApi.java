@@ -33,11 +33,55 @@ public class AdminApi {
 
         // Создание и настройка HTTP-сервера
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+        server.createContext("/admin/configure-otp", new ConfigureOtpHandler(otpService));
         server.createContext("/admin/list-users", new ListUsersHandler(userService));
         server.createContext("/admin/delete-user", new DeleteUserHandler(userService));
         server.setExecutor(null); // creates a default executor
         server.start();
         System.out.println("Admin API server started on port " + PORT);
+    }
+
+    // Handler for changing OTP configuration
+    static class ConfigureOtpHandler implements HttpHandler {
+        private OtpService otpService;
+
+        public ConfigureOtpHandler(OtpService otpService) {
+            this.otpService = otpService;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!exchange.getRequestMethod().equals("POST")) {
+                sendErrorResponse(exchange, 405, "Method Not Allowed");
+                return;
+            }
+
+            // Parse the request body to extract OTP configuration details
+            String requestBody = readRequestBody(exchange);
+            String[] params = requestBody.split("&");
+            List<String> paramList = new ArrayList<>();
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2) {
+                    paramList.add(keyValue[1]);
+                }
+            }
+
+            if (paramList.size() >= 2) {
+                int codeLength = Integer.parseInt(paramList.get(0));
+                int lifetimeInMinutes = Integer.parseInt(paramList.get(1));
+
+                // Call service method to update OTP configuration
+                try {
+                    otpService.changeOtpConfig(codeLength, lifetimeInMinutes);
+                    sendSuccessResponse(exchange, "OTP configuration updated successfully.");
+                } catch (Exception e) {
+                    sendErrorResponse(exchange, 500, "Failed to update OTP configuration: " + e.getMessage());
+                }
+            } else {
+                sendErrorResponse(exchange, 400, "Missing or invalid parameters.");
+            }
+        }
     }
 
     // Handler for listing users

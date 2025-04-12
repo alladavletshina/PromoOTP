@@ -68,7 +68,7 @@ public class Main {
                     User.Role role = userService.getRole(name);
 
                     if (role == User.Role.ADMIN) {
-                        runAdminInterface(adminController, otpService, token);
+                        runAdminInterface(otpService, token);
                     } else {
                         runUserInterface(userController, token, loggedInUser);
                     }
@@ -82,7 +82,8 @@ public class Main {
     }
 
     // Метод для запуска интерфейса администратора
-    private static void runAdminInterface(AdminController adminController, OtpService otpService, String token) {
+    private static void runAdminInterface(OtpService otpService, String token) {
+
         //старт планировщика
         otpService.initScheduler();
 
@@ -98,14 +99,13 @@ public class Main {
             switch (choice) {
                 case 1:
                     if (checkTokenValidity(token)) {
-                        adminController.changeOtpConfig(token);
+                        callChangeOtpConfigApi(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 2:
                     if (checkTokenValidity(token)) {
-                        //adminController.listUsers(token);
                         callListUsersApi(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
@@ -113,7 +113,6 @@ public class Main {
                     break;
                 case 3:
                     if (checkTokenValidity(token)) {
-                        //adminController.deleteUser(token);
                         callDeleteUserApi(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
@@ -237,6 +236,41 @@ public class Main {
             // Если произошла ошибка при разборе токена, считаем его недействительным
             System.out.println("Ошибка при проверке токена: " + e.getMessage());
             return false;
+        }
+    }
+
+    private static void callChangeOtpConfigApi(String token) {
+
+        System.out.println("Укажите новую конфигурацию OTP-кодов:");
+
+        System.out.print("Длина OTP-кода: ");
+        int codeLength = Integer.parseInt(getInput(""));
+
+        System.out.print("Время жизни OTP-кода (минуты): ");
+        int lifetimeInMinutes = Integer.parseInt(getInput(""));
+
+        try {
+            URL url = new URL("http://localhost:8000/admin/configure-otp");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setDoOutput(true);
+
+            // Отправка параметров конфигурации OTP
+            OutputStream os = conn.getOutputStream();
+            String payload = "codeLength=" + codeLength + "&lifetimeInMinutes=" + lifetimeInMinutes;
+            os.write(payload.getBytes());
+            os.flush();
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Конфигурация OTP обновлена успешно.");
+            } else {
+                System.out.println("Ошибка обновления конфигурации OTP: " + conn.getResponseMessage());
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 
