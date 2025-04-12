@@ -11,7 +11,6 @@ import org.example.model.User;
 import org.example.util.EmailNotificationService;
 import org.example.service.OtpService;
 import org.example.service.UserService;
-import org.example.api.OperationController;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 
@@ -36,7 +35,6 @@ public class Main {
         OtpService otpService = new OtpService(emailService, otpDao, smsSender);
 
         UserController userController = new UserController(userService, otpService);
-        OperationController operationController = new OperationController(otpService);
         AdminController adminController = new AdminController(userService, otpService);
 
         System.out.println("Добро пожаловать! Пожалуйста, войдите в систему.");
@@ -47,7 +45,7 @@ public class Main {
         //operationController.processExpiredOtpCodes();
 
         // Запуск планировщика
-        operationController.initScheduler();
+        userController.initScheduler();
 
         try {
             // Логин пользователя
@@ -63,7 +61,7 @@ public class Main {
                 if (role == User.Role.ADMIN) {
                     runAdminInterface(adminController, token);
                 } else {
-                    runUserInterface(userController, operationController, token,loggedInUser);
+                    runUserInterface(userController, token,loggedInUser);
                 }
             } else {
                 System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
@@ -107,6 +105,8 @@ public class Main {
                     }
                     break;
                 case 0:
+                    // Остановка планировщика задач
+                    adminController.shutdown();
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
@@ -116,7 +116,7 @@ public class Main {
     }
 
     // Метод для запуска интерфейса пользователя
-    private static void runUserInterface(UserController userController, OperationController operationController, String token, User loggedInUser) {
+    private static void runUserInterface(UserController userController, String token, User loggedInUser) {
         while (true) {
             System.out.println("\nВыберите действие:");
             System.out.println("1. Зарегистрироваться");
@@ -152,16 +152,16 @@ public class Main {
 
                         switch (choice_) {
                             case 1:
-                                operationController.initiateProtectedOperationToEmail(operation, token);
+                                userController.initiateProtectedOperationToEmail(operation, token);
                                 break;
                             case 2:
-                                operationController.initiateProtectedOperationToSmpp(operation, token);
+                                userController.initiateProtectedOperationToSmpp(operation, token);
                                 break;
                             case 3:
                                 System.out.println("Здесь будет код для отправки в Telegram");
                                 break;
                             case 4:
-                                operationController.saveOtpCodeToFile(operation, token);
+                                userController.saveOtpCodeToFile(operation, token);
                                 break;
                             case 0:
                                 System.out.println("Выход.");
@@ -175,14 +175,14 @@ public class Main {
                     break;
                 case 3:
                     if (checkTokenValidity(token)) {
-                        operationController.verifyOtpCode(token);
+                        userController.verifyOtpCode(token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 0:
                     // Остановка планировщика задач
-                    operationController.shutdown();
+                    userController.shutdown();
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
