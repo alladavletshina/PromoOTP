@@ -39,11 +39,14 @@ CREATE TABLE otp_config (
 
 CREATE TABLE otp_codes (
     id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL, -- Добавляем внешний ключ на таблицу users
     operation_id INT,
     otp_code VARCHAR(10) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'EXPIRED', 'USED')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP
+    expires_at TIMESTAMP,
+    description TEXT NOT NULL,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE operations (

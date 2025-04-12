@@ -36,7 +36,7 @@ public class OtpDao {
                         rs.getString("status"),
                         rs.getTimestamp("created_at").toLocalDateTime(),
                         rs.getTimestamp("expires_at") != null ? rs.getTimestamp("expires_at").toLocalDateTime() : null,
-                        rs.getString("description_operation")
+                        rs.getString("description")
                 );
                 otpCodes.add(otpCode);
             }
@@ -79,7 +79,7 @@ public class OtpDao {
 
     public boolean saveOtpCode(OtpCode otpCode) {
         try {
-            PreparedStatement stmt = connection.prepareStatement("INSERT INTO otp_codes(user_id, operation_id, otp_code, status, created_at, expires_at, description_operation) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO otp_codes(user_id, operation_id, otp_code, status, created_at, expires_at, description) VALUES (?, ?, ?, ?, ?, ?, ?)");
             stmt.setLong(1, otpCode.getUser_id());
             stmt.setLong(2, otpCode.getOperationId());
             stmt.setString(3, otpCode.getCode());
