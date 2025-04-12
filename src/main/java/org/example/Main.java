@@ -13,15 +13,12 @@ import org.example.service.OtpService;
 import org.example.service.UserService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
-
 import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
-    private static OtpService otpService;
-    private static UserService userService;
 
     public static void main(String[] args) {
 
@@ -37,42 +34,50 @@ public class Main {
         UserController userController = new UserController(userService, otpService);
         AdminController adminController = new AdminController(userService, otpService);
 
-        System.out.println("Добро пожаловать! Пожалуйста, войдите в систему.");
-        String name = getInput("Укажите имя: ");
-        String password = getInput("Пароль: ");
+        System.out.println("Добро пожаловать! Выберите действие:");
+        System.out.println("1. Зарегистрироваться");
+        System.out.println("2. Войти");
 
-        // обновление статусов OTP кодов при каждом входе в приложение
-        //operationController.processExpiredOtpCodes();
+        int choice = Integer.parseInt(getInput("Ваш выбор: "));
 
-        // Запуск планировщика
-        userController.initScheduler();
+        switch (choice) {
+            case 1:
+                userController.registerUser();
+                break;
+            case 2:
+                System.out.println("Пожалуйста, войдите в систему.");
+                String name = getInput("Укажите имя: ");
+                String password = getInput("Пароль: ");
 
-        try {
-            // Логин пользователя
-            String token = userController.getUserToken(name, password);
-            User loggedInUser = userController.loginUser(name, password);
+                // Логин пользователя
+                String token = userController.getUserToken(name, password);
+                User loggedInUser = userController.loginUser(name, password);
 
-            if (token != null) {
-                System.out.println("Успешный вход. Ваш токен: " + token);
+                if (token != null) {
+                    System.out.println("Успешный вход. Ваш токен: " + token);
 
-                // Определение роли пользователя
-                User.Role role = userService.getRole(name);
+                    // Определение роли пользователя
+                    User.Role role = userService.getRole(name);
 
-                if (role == User.Role.ADMIN) {
-                    runAdminInterface(adminController, token);
+                    if (role == User.Role.ADMIN) {
+                        runAdminInterface(adminController, token);
+                    } else {
+                        runUserInterface(userController, token, loggedInUser);
+                    }
                 } else {
-                    runUserInterface(userController, token,loggedInUser);
+                    System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
                 }
-            } else {
-                System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
-            }
-        } catch (Exception e) {
-            System.out.println("Ошибка входа: " + e.getMessage());
+                break;
+            default:
+                System.out.println("Неправильный выбор. Попробуйте снова.");
         }
     }
 
     // Метод для запуска интерфейса администратора
     private static void runAdminInterface(AdminController adminController, String token) {
+        //старт планировщика
+        adminController.initScheduler();
+
         while (true) {
             System.out.println("\nВыберите действие:");
             System.out.println("1. Изменить конфигурацию OTP-кодов");
@@ -117,20 +122,20 @@ public class Main {
 
     // Метод для запуска интерфейса пользователя
     private static void runUserInterface(UserController userController, String token, User loggedInUser) {
+
+        //старт планировщика
+        userController.initScheduler();
+
         while (true) {
             System.out.println("\nВыберите действие:");
-            System.out.println("1. Зарегистрироваться");
-            System.out.println("2. Иницировать операцию и отправить OTP-код");
-            System.out.println("3. Проверить OTP-код");
+            System.out.println("1. Иницировать операцию и отправить OTP-код");
+            System.out.println("2. Проверить OTP-код");
             System.out.println("0. Выход");
 
             int choice = Integer.parseInt(getInput("Ваш выбор: "));
 
             switch (choice) {
                 case 1:
-                    userController.registerUser();
-                    break;
-                case 2:
                     if (checkTokenValidity(token)) {
                         // Данные для создания операции
                         System.out.print("ID операции: ");
@@ -164,6 +169,7 @@ public class Main {
                                 userController.saveOtpCodeToFile(operation, token);
                                 break;
                             case 0:
+                                userController.shutdown();
                                 System.out.println("Выход.");
                                 return;
                             default:
@@ -173,7 +179,7 @@ public class Main {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
-                case 3:
+                case 2:
                     if (checkTokenValidity(token)) {
                         userController.verifyOtpCode(token);
                     } else {
