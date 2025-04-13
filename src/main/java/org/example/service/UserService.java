@@ -17,8 +17,8 @@ public class UserService {
         return userDao.findAllUsers();
     }
 
-    public User getUserByUsername(String username, String password) {
-        return userDao.findUserByUsername(username, password);
+    public User getUserByUsername(String username) {
+        return userDao.findUserByUsername(username);
     }
 
     public boolean addUser(User user) {
@@ -35,7 +35,7 @@ public class UserService {
     }
 
     // Новый метод для получения роли пользователя
-    public User.Role getRole(String username) {
+    public String getRole(String username) {
         return userDao.getRole(username);
     }
 }

@@ -352,6 +352,7 @@ public class Main {
 
         String username = getInput("Укажите имя: ");
         String password = getInput("Пароль: ");
+        String role = getInput("Укажите свою роль (ADMIN/USER): ");
 
         try {
             URL url = new URL("http://localhost:9000/register");
@@ -364,6 +365,7 @@ public class Main {
             JSONObject json = new JSONObject();
             json.put("username", username);
             json.put("password", password);
+            json.put("role", role);
 
             // Отправляем данные
             OutputStream os = conn.getOutputStream();

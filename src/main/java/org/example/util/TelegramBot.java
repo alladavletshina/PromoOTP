@@ -3,6 +3,8 @@ package org.example.util;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -11,6 +13,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 public class TelegramBot {
+
+    Properties properties = new Properties();
 
     private final Log logger = LogFactory.getLog(getClass());
     private final String telegramApiUrl = "https://api.telegram.org/bot";

@@ -7,25 +7,18 @@ public class User {
     private long id;
     private String username;
     private String passwordHash;
-    private Role role;
+    private String role;
 
-    // Перечисление для ролей
-    public enum Role {
-        ADMIN, USER
-    }
-
-    // Конструктор без аргументов для JDBC
-    public User(long id, String username, String passwordHash, String role) {}
 
     // Конструктор с аргументами
-    public User(long id, String username, String passwordHash, Role role) {
+    public User(long id, String username, String passwordHash, String role) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
     }
 
-    public User(String username, String passwordHash, Role role) {
+    public User(String username, String passwordHash, String role) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
@@ -64,11 +57,11 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    public Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

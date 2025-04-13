@@ -105,6 +105,17 @@ public class OtpDao {
         }
     }
 
+    public void updateOtpCodeStatusUsed(String code, String status) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement("UPDATE otp_codes SET status = ? WHERE otp_code = ?");
+            stmt.setString(1, status);
+            stmt.setString(2, code);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void changeOtpConfig(int otpCodeLength, int otpLifetimeInMinutes) {
         try {
             PreparedStatement stmt = connection.prepareStatement("UPDATE otp_config SET codelength = ?, lifetimeinminutes = ? WHERE id = 1");
@@ -118,17 +129,6 @@ public class OtpDao {
             }
         } catch (SQLException e) {
             System.err.println("Ошибка при обновлении конфигурации: " + e.getMessage());
-        }
-    }
-
-    public boolean deleteOtpCode(long id) {
-        try {
-            PreparedStatement stmt = connection.prepareStatement("DELETE FROM otp_codes WHERE id = ?");
-            stmt.setLong(1, id);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 

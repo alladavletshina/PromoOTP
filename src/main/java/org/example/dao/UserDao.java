@@ -32,18 +32,13 @@ public class UserDao {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                // Получаем строку роли из базы данных
-                String roleStr = rs.getString("role");
-
-                // Преобразуем строку роли в объект перечисления Role
-                User.Role role = User.Role.valueOf(roleStr.toUpperCase());
 
                 // Создаем объект User с преобразованной ролью
                 User user = new User(
                         rs.getLong("id"),          // ID пользователя
                         rs.getString("username"),  // Имя пользователя
                         rs.getString("password_hash"), // Хэш пароля
-                        role                       // Роль пользователя (объект перечисления)
+                        rs.getString("role")
                 );
                 users.add(user);
             }
@@ -53,25 +48,19 @@ public class UserDao {
         return users;
     }
 
-    public User findUserByUsername(String username, String password) {
+    public User findUserByUsername(String username) {
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ? AND password_hash = ?");
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // Получаем строку роли из базы данных
-                String roleStr = rs.getString("role");
-
-                // Преобразуем строку роли в объект перечисления Role
-                User.Role role = User.Role.valueOf(roleStr.toUpperCase());
 
                 return new User(
                         rs.getLong("id"),
                         rs.getString("username"),
                         rs.getString("password_hash"),
-                        role
+                        rs.getString("role")
                 );
             }
             return null; // Возвращаем null, если пользователь не найден
@@ -85,7 +74,7 @@ public class UserDao {
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO users(username, password_hash, role) VALUES (?, ?, ?)");
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPasswordHash());
-            stmt.setString(3, user.getRole().toString());
+            stmt.setString(3, user.getRole());
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -97,7 +86,7 @@ public class UserDao {
         try {
             PreparedStatement stmt = connection.prepareStatement("UPDATE users SET password_hash = ?, role = ? WHERE username = ?");
             stmt.setString(1, user.getPasswordHash());
-            stmt.setString(2, user.getRole().toString());
+            stmt.setString(2, user.getRole());
             stmt.setString(3, user.getUsername());
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
@@ -117,14 +106,13 @@ public class UserDao {
         }
     }
 
-    public User.Role getRole(String username) {
+    public String getRole(String username) {
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT role FROM users WHERE username = ?");
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                String roleStr = rs.getString("role");
-                return User.Role.valueOf(roleStr.toUpperCase()); // Преобразуем строку в объект Role
+                return rs.getString("role");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

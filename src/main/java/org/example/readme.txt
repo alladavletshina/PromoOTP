@@ -56,8 +56,8 @@ CREATE TABLE operations (
     otp_code_id BIGINT REFERENCES otp_codes(id)
 );
 
-Администратор - ALLA
-Пароль - $2y$12$d.dQdOUBX5PnVU.xfD.CVeB9TQ3.yqSuEuxw9XEVN4Ys5lHOKeM.
+Администратор - ADMIN
+Пароль - 123
 
 
 limpa_5@rambler.ru

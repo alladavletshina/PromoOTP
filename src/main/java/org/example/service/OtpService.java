@@ -1,7 +1,6 @@
 package org.example.service;
 
 import org.example.dao.OtpDao;
-import org.example.model.Operation;
 import org.example.model.OtpCode;
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
@@ -9,11 +8,8 @@ import org.example.util.TelegramBot;
 import org.json.JSONObject;
 
 import javax.mail.MessagingException;
-import javax.tools.Diagnostic;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
@@ -111,6 +107,11 @@ public class OtpService {
                 otpDao.updateOtpCodeStatus(otpCode); // Обновляем статус в базе данных
             }
         }
+    }
+
+    public void updateUsed(String code) {
+        String status = "USED";
+        otpDao.updateOtpCodeStatusUsed(code, status); // Обновляем статус в базе данных
     }
 
     public void initScheduler() {

@@ -4,12 +4,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.DefaultClaims;
 import org.example.dao.OtpDao;
 import org.example.dao.UserDao;
-import org.example.model.Operation;
 import org.example.model.OtpCode;
 import org.example.model.User;
 import org.example.service.OtpService;
@@ -18,14 +14,16 @@ import org.example.service.UserService;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.Objects;
 
 import org.example.util.TelegramBot;
 import org.json.JSONObject;
 
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
-import org.json.JSONObject;
+
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserApi {
 
@@ -92,6 +90,7 @@ public class UserApi {
                 JSONObject responseJson = new JSONObject();
                 if (isValid) {
                     responseJson.put("message", "Код введен верно!");
+                    otpService.updateUsed(code);
                 } else {
                     responseJson.put("message", "Неверный код!");
                 }
@@ -116,9 +115,12 @@ public class UserApi {
             JSONObject json = new JSONObject(requestBody);
             String username = json.getString("username");
             String password = json.getString("password");
+            String role = json.getString("role");
 
-            // Create a new user
-            User user = new User(username, password, User.Role.USER);
+            // Генерируем соль и хешируем пароль
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12)); // Сложность хеширования - 12
+
+            User user = new User(username, hashedPassword, role);
 
             try {
                 if (userService.addUser(user)) {
@@ -153,15 +155,25 @@ public class UserApi {
             String username = json.getString("username");
             String password = json.getString("password");
 
-            // Check if user exists
-            User user = userService.getUserByUsername(username, password);
-            if (user != null) {
-                // Prepare success response with both token and user data
-                JSONObject responseJson = new JSONObject();
-                responseJson.put("user", user.toJSONObject()); // Convert User object to JSON
+            // Получаем пользователя по имени пользователя
+            User user = userService.getUserByUsername(username);
 
-                sendSuccessResponse(exchange, responseJson.toString());
+            if (user != null) {
+                // Проверяем пароль с помощью BCrypt
+                boolean isValid = BCrypt.checkpw(password, user.getPasswordHash());
+
+                if (isValid) {
+                    // Если пароль верный, формируем ответ
+                    JSONObject responseJson = new JSONObject();
+                    responseJson.put("user", user.toJSONObject()); // Convert User object to JSON
+
+                    sendSuccessResponse(exchange, responseJson.toString());
+                } else {
+                    // Если пароль неверный, отправляем ошибку
+                    sendErrorResponse(exchange, 401, "Unauthorized: Invalid credentials.");
+                }
             } else {
+                // Если пользователя не нашли, отправляем ошибку
                 sendErrorResponse(exchange, 401, "Unauthorized: Invalid credentials.");
             }
         }
