@@ -1,6 +1,5 @@
 package org.example.util;
 
-import org.smpp.Connection;
 import org.smpp.Session;
 import org.smpp.TCPIPConnection;
 import org.smpp.pdu.BindResponse;
@@ -23,13 +22,17 @@ public class SmppClient {
     public void loadProperties() {
         Properties properties = new Properties();
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("sms.properties")) {
-            properties.load(inputStream);
-            host = properties.getProperty("smpp.host");
-            port = Integer.parseInt(properties.getProperty("smpp.port"));
-            systemId = properties.getProperty("smpp.system_id");
-            password = properties.getProperty("smpp.password");
-            systemType = properties.getProperty("smpp.system_type");
-            sourceAddress = properties.getProperty("smpp.source_addr");
+            if (inputStream != null) {
+                properties.load(inputStream);
+                host = properties.getProperty("smpp.host");
+                port = Integer.parseInt(properties.getProperty("smpp.port"));
+                systemId = properties.getProperty("smpp.system_id");
+                password = properties.getProperty("smpp.password");
+                systemType = properties.getProperty("smpp.system_type");
+                sourceAddress = properties.getProperty("smpp.source_addr");
+            } else {
+                throw new IOException("File 'sms.properties' not found");
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load SMS properties", e);
         }
@@ -57,6 +60,15 @@ public class SmppClient {
 
             // 4. Отправка сообщения
             SubmitSM submitSm = new SubmitSM();
+
+            // Добавляем проверку на null
+            if (sourceAddress == null || sourceAddress.trim().isEmpty()) {
+                throw new IllegalStateException("Source address cannot be empty or null");
+            }
+            if (destination == null || destination.trim().isEmpty()) {
+                throw new IllegalStateException("Destination number cannot be empty or null");
+            }
+
             submitSm.setSourceAddr(sourceAddress);
             submitSm.setDestAddr(destination);
             submitSm.setShortMessage("Your code: " + code);
