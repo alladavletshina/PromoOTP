@@ -16,6 +16,7 @@ import org.example.dao.UserDao;
 import org.example.dao.OtpDao;
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
+import org.example.util.TelegramBot;
 
 public class AdminApi {
 
@@ -27,9 +28,10 @@ public class AdminApi {
         OtpDao otpDao = new OtpDao();
         EmailNotificationService emailService = new EmailNotificationService();
         SmppClient smsSender = new SmppClient();
+        TelegramBot telegramBot = new TelegramBot();
 
         UserService userService = new UserService(userDao);
-        OtpService otpService = new OtpService(emailService, otpDao, smsSender);
+        OtpService otpService = new OtpService(emailService, otpDao, smsSender, telegramBot);
 
         // Создание и настройка HTTP-сервера
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);

@@ -33,7 +33,7 @@ public class Main {
         SmppClient smsSender = new SmppClient();
         EmailNotificationService emailService = new EmailNotificationService();
         UserService userService = new UserService(userDao);
-        OtpService otpService = new OtpService(emailService, otpDao, smsSender);
+        OtpService otpService = new OtpService(emailService, otpDao, smsSender, telegramBot);
 
 
         System.out.println("Добро пожаловать! Выберите действие:");
@@ -169,7 +169,7 @@ public class Main {
                                 callInitiateOperationApi(id_operation, description, userId, "sms", token);
                                 break;
                             case 3:
-                                System.out.println("Здесь будет код для отправки в Telegram");
+                                callInitiateOperationApi(id_operation, description, userId, "telegram", token);
                                 break;
                             case 4:
                                 callInitiateOperationApi(id_operation, description, userId, "file", token);

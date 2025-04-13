@@ -19,6 +19,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.Date;
+
+import org.example.util.TelegramBot;
 import org.json.JSONObject;
 
 import org.example.util.EmailNotificationService;
@@ -57,8 +59,9 @@ public class UserApi {
         OtpDao otpDao = new OtpDao();
         EmailNotificationService emailService = new EmailNotificationService();
         SmppClient smsSender = new SmppClient();
+        TelegramBot telegramBot = new TelegramBot();
         UserService userService = new UserService(userDao);
-        OtpService otpService = new OtpService(emailService, otpDao, smsSender);
+        OtpService otpService = new OtpService(emailService, otpDao, smsSender, telegramBot);
 
         // Start the API server
         UserApi userApi = new UserApi(userService, otpService);
@@ -214,6 +217,8 @@ public class UserApi {
                 otpService.initiateOperationToSmpp(otpCode);
             } else if (channel.equals("file")) {
                 otpService.saveOtpCodeToFile(otpCode);
+            } else if (channel.equals("telegram")) {
+                otpService.initiateOperationToTelegram(otpCode);
             } else {
                 sendErrorResponse(exchange, 400, "Unsupported channel.");
                 return;

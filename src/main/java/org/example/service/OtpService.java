@@ -26,12 +26,14 @@ public class OtpService {
     private final EmailNotificationService emailService;
     private final OtpDao otpDao;
     private final SmppClient smsSender;
+    private final TelegramBot telegramBot;
     private ScheduledExecutorService scheduler;
 
-    public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender) {
+    public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender, TelegramBot telegramBot) {
         this.emailService = emailService;
         this.otpDao = otpDao;
         this.smsSender = smsSender;
+        this.telegramBot = telegramBot;
     }
 
     public void initiateOperationToEmail(OtpCode otpCode) {
@@ -41,6 +43,11 @@ public class OtpService {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+        otpDao.saveOtpCode(otpCode);
+    }
+
+    public void initiateOperationToTelegram(OtpCode otpCode) {
+        telegramBot.sendCode("Пользователь", otpCode.getCode());
         otpDao.saveOtpCode(otpCode);
     }
 
