@@ -1,5 +1,6 @@
 package org.example.api;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -187,7 +188,6 @@ public class UserApi {
             long userId = json.getLong("user_id");
 
             // Determine where to send the OTP code
-            //String destination = json.getString("destination");
             String channel = json.getString("channel"); // email, SMS, etc.
 
             // Generate OTP code
@@ -219,8 +219,13 @@ public class UserApi {
                 return;
             }
 
+            // Создаем JSON-ответ с информацией о коде и канале отправки
             JSONObject responseJson = new JSONObject();
+            responseJson.put("otp_code", generatedOtpCode);
+            responseJson.put("sent_channel", channel);
             responseJson.put("message", "OTP code sent successfully.");
+
+            // Отправляем успешный ответ
             sendSuccessResponse(exchange, responseJson.toString());
         }
 
@@ -233,6 +238,15 @@ public class UserApi {
                 sb.append(line);
             }
             return sb.toString();
+        }
+
+        private void sendSuccessResponse(HttpExchange exchange, String responseBody) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, responseBody.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(responseBody.getBytes());
+            os.close();
         }
     }
 

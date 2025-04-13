@@ -8,6 +8,8 @@ import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 import org.json.JSONObject;
 
+import javax.mail.MessagingException;
+import javax.tools.Diagnostic;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -19,14 +21,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledExecutorService;
 
-
 public class OtpService {
 
     private final EmailNotificationService emailService;
     private final OtpDao otpDao;
     private final SmppClient smsSender;
     private ScheduledExecutorService scheduler;
-    //private final TelegramBot telegramBot;
 
     public OtpService(EmailNotificationService emailService, OtpDao otpDao, SmppClient smsSender) {
         this.emailService = emailService;
@@ -35,8 +35,12 @@ public class OtpService {
     }
 
     public void initiateOperationToEmail(OtpCode otpCode) {
-        String destination = "atdavletshina@gmail.com";
-        emailService.sendCode(destination,otpCode.getCode());
+        String destination = "limpa_5@rambler.ru";
+        try {
+            emailService.sendCode(destination, otpCode.getCode()); // Вызов метода sendCode
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
         otpDao.saveOtpCode(otpCode);
     }
 
@@ -87,13 +91,6 @@ public class OtpService {
         return sb.toString();
     }
 
-    public boolean checkOtpCode(String userEmail, String otpCode) {
-        // Проверяем OTP-код, сравнивая с сохранённым (здесь заглушка)
-        System.out.println("Проверка OTP-кода для пользователя: " + userEmail);
-        // Для теста считаем, что код верный
-        return true;
-    }
-
     public List<OtpCode> findAllOtpCodes() {
         return otpDao.findAllOtpCodes();
     }
@@ -118,14 +115,12 @@ public class OtpService {
         }, 0, intervalInSeconds, TimeUnit.SECONDS);
     }
 
-
-
     public void shutdown() {
         scheduler.shutdownNow();
     }
 
     public boolean getOtpCode(String otpCode) {
-      return otpDao.getOtpCode(otpCode);
+        return otpDao.getOtpCode(otpCode);
     }
 
     public void changeOtpConfig(int newCodeLength, int newLifetimeInMinutes) {

@@ -58,3 +58,7 @@ CREATE TABLE operations (
 
 Администратор - ALLA
 Пароль - $2y$12$d.dQdOUBX5PnVU.xfD.CVeB9TQ3.yqSuEuxw9XEVN4Ys5lHOKeM.
+
+
+Limpa_5@rambler.ru
+KYt-49L-2W7-TKn

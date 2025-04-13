@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClaims;
-import org.example.api.UserController;
 import org.example.dao.OtpDao;
 import org.example.dao.UserDao;
 import org.example.util.EmailNotificationService;
@@ -36,7 +35,6 @@ public class Main {
         UserService userService = new UserService(userDao);
         OtpService otpService = new OtpService(emailService, otpDao, smsSender);
 
-        UserController userController = new UserController(userService, otpService);
 
         System.out.println("Добро пожаловать! Выберите действие:");
         System.out.println("1. Зарегистрироваться");
@@ -426,6 +424,7 @@ public class Main {
     }
 
     // Вызов API для генерации кода OTP (пользователь)
+    // Вызов API для генерации кода OTP (пользователь)
     private static void callInitiateOperationApi(long operationId, String description, long userId, String channel, String token) {
         try {
             URL url = new URL("http://localhost:9000/initiate-operation");
@@ -450,7 +449,21 @@ public class Main {
             // Читаем ответ
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("Операция инициирована успешно.");
+                // Читаем тело ответа
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String output;
+                while ((output = br.readLine()) != null) {
+                    JSONObject responseJson = new JSONObject(output);
+
+                    // Извлекаем номер OTP-кода и канал отправки из ответа
+                    String otpCode = responseJson.optString("otp_code", "");
+                    String sentChannel = responseJson.optString("sent_channel", "");
+
+                    // Выводим информацию в консоль
+                    System.out.println("Операция инициирована успешно.");
+                    System.out.println("Код OTP: " + otpCode);
+                    System.out.println("Канал отправки: " + channel);
+                }
             } else {
                 System.out.println("Ошибка инициирования операции: " + conn.getResponseMessage());
             }
