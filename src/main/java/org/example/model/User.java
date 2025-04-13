@@ -1,5 +1,7 @@
 package org.example.model;
 
+import org.json.JSONObject;
+
 public class User {
 
     private long id;
@@ -44,6 +46,14 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject userJson = new JSONObject();
+        userJson.put("user_id", id);
+        userJson.put("username", username);
+        userJson.put("role", role);
+        return userJson;
     }
 
     public String getPasswordHash() {

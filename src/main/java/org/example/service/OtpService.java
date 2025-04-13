@@ -6,7 +6,10 @@ import org.example.model.OtpCode;
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
+import org.json.JSONObject;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -31,13 +34,15 @@ public class OtpService {
         this.smsSender = smsSender;
     }
 
-    public void initiateOperationToEmail(String toEmail, OtpCode otpCode) {
-        //emailService.sendCode(toEmail, otpCode.getCode());
+    public void initiateOperationToEmail(OtpCode otpCode) {
+        String destination = "atdavletshina@gmail.com";
+        emailService.sendCode(destination,otpCode.getCode());
         otpDao.saveOtpCode(otpCode);
     }
 
-    public void initiateOperationToSmpp(String destination, OtpCode otpCode) {
+    public void initiateOperationToSmpp(OtpCode otpCode) {
         smsSender.loadProperties();
+        String destination = "+7";
         smsSender.sendSms(destination, otpCode.getCode());
         otpDao.saveOtpCode(otpCode);
     }
@@ -52,6 +57,25 @@ public class OtpService {
 
     public void saveOtpCodeToFile(OtpCode otpCode) {
         otpDao.saveOtpCode(otpCode);
+
+        // Указываем относительный путь к файлу в текущей директории
+        String fileName = "otp_code.txt";
+        String filePath = System.getProperty("user.dir") + "/" + fileName;
+
+        // Преобразуем объект OtpCode в JSON
+        JSONObject jsonObject = new JSONObject(otpCode);
+        String jsonData = jsonObject.toString();
+
+        // Открываем файл для записи и перезаписи информации
+        try (FileWriter writer = new FileWriter(filePath, false)) {
+            writer.write(jsonData);
+            writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Информируем пользователя о сохранении данных
+        System.out.println("\nВсе данные OTP-кода успешно сохранены в файл: " + filePath);
     }
 
     public String generateOtpCode(int otpCodeLength) {
@@ -93,6 +117,8 @@ public class OtpService {
             processExpiredOtpCodes(otpCodes); // Обрабатываем просроченные OTP-коды
         }, 0, intervalInSeconds, TimeUnit.SECONDS);
     }
+
+
 
     public void shutdown() {
         scheduler.shutdownNow();

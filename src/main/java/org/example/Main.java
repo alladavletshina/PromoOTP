@@ -7,8 +7,6 @@ import io.jsonwebtoken.impl.DefaultClaims;
 import org.example.api.UserController;
 import org.example.dao.OtpDao;
 import org.example.dao.UserDao;
-import org.example.model.Operation;
-import org.example.model.User;
 import org.example.util.EmailNotificationService;
 import org.example.service.OtpService;
 import org.example.service.UserService;
@@ -16,15 +14,12 @@ import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
 
 public class Main {
 
@@ -58,25 +53,29 @@ public class Main {
                 String name = getInput("Укажите имя: ");
                 String password = getInput("Пароль: ");
 
-                // Логин пользователя
-                String token = getUserToken(name, password, userService);
-                User loggedInUser = userController.loginUser(name, password);
-                String loggedInUser_ = callLoginUserApi(name, password);
+                JSONObject userResponse = callLoginUserApi(name, password);
+                if (userResponse != null) {
+                    String username = userResponse.getString("username");
+                    long userId = userResponse.getLong("user_id");
+                    String role = userResponse.optString("role", "<no_role>");
+                    String token = generateJwtToken(username);
 
-                if (token != null) {
-                    System.out.println("Успешный вход. Ваш токен: " + token);
+                    if (token != null) {
+                        System.out.println("Успешный вход. Ваш токен: " + token);
 
-                    // Определение роли пользователя
-                    User.Role role = userService.getRole(name);
-
-                    if (role == User.Role.ADMIN) {
-                        runAdminInterface(otpService, token);
+                        if (Objects.equals(role, "ADMIN")) {
+                            runAdminInterface(otpService, token);
+                        } else {
+                            runUserInterface(userId, otpService, token);
+                        }
                     } else {
-                        runUserInterface(userController, otpService, token, loggedInUser);
+                        System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
                     }
+
                 } else {
-                    System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
+                    System.out.println("Ошибка входа.");
                 }
+
                 break;
             default:
                 System.out.println("Неправильный выбор. Попробуйте снова.");
@@ -132,7 +131,7 @@ public class Main {
     }
 
     // Метод для запуска интерфейса пользователя
-    private static void runUserInterface(UserController userController, OtpService otpService, String token, User loggedInUser) {
+    private static void runUserInterface(long userId, OtpService otpService, String token) {
 
         //старт планировщика
         otpService.initScheduler();
@@ -150,12 +149,10 @@ public class Main {
                     if (checkTokenValidity(token)) {
                         // Данные для создания операции
                         System.out.print("ID операции: ");
-                        long id = Long.parseLong(getInput(""));
+                        long id_operation = Long.parseLong(getInput(""));
                         System.out.print("Описание операции: ");
                         String description = getInput("");
 
-                        // Создаем операцию
-                        Operation operation = new Operation(id, description, loggedInUser.getId());
 
                         System.out.println("\nВыберите куда хотите направить OTP-код:");
                         System.out.println("1. Электронная почта");
@@ -168,16 +165,16 @@ public class Main {
 
                         switch (choice_) {
                             case 1:
-                                userController.initiateProtectedOperationToEmail(operation, token);
+                                callInitiateOperationApi(id_operation, description, userId, "email", token);
                                 break;
                             case 2:
-                                userController.initiateProtectedOperationToSmpp(operation, token);
+                                callInitiateOperationApi(id_operation, description, userId, "sms", token);
                                 break;
                             case 3:
                                 System.out.println("Здесь будет код для отправки в Telegram");
                                 break;
                             case 4:
-                                userController.saveOtpCodeToFile(operation, token);
+                                callInitiateOperationApi(id_operation, description, userId, "file", token);
                                 break;
                             case 0:
                                 // Остановка планировщика задач
@@ -194,7 +191,12 @@ public class Main {
                     break;
                 case 2:
                     if (checkTokenValidity(token)) {
-                        userController.verifyOtpCode(token);
+
+                        //Получаем от пользователя OTP код
+                        System.out.print("OTP-код: ");
+                        String code = getInput("");
+
+                        callVerifyOtpCodeApi(code, token);
                     } else {
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
@@ -217,30 +219,13 @@ public class Main {
         return scanner.nextLine();
     }
 
-    public static String getUserToken(String name, String password, UserService userService) {
-        try {
-            // Проверяем существование пользователя
-            User user = userService.getUserByUsername(name, password);
-            if (user != null) {
-                // Генерируем токен
-                String token = generateJwtToken(user);
-                return token; // Возвращаем токен
-            } else {
-                return null; // Возвращаем null, если пользователь не найден
-            }
-        } catch (Exception e) {
-            System.out.println("Ошибка входа: " + e.getMessage());
-            return null; // Возвращаем null в случае ошибки
-        }
-    }
-
-    private static String generateJwtToken(User user) {
+    private static String generateJwtToken(String username) {
         // Пример генерации JWT-токена
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
 
         DefaultClaims claims = new DefaultClaims();
-        claims.setSubject(user.getUsername()); // Установим субъект (идентификатор пользователя)
+        claims.setSubject(username); // Установим субъект (идентификатор пользователя)
         claims.setIssuedAt(now);              // Установим время выпуска токена
         claims.setExpiration(new Date(nowMillis + 3600000)); // Установим срок действия токена (1 час)
 
@@ -399,7 +384,8 @@ public class Main {
         }
     }
 
-    private static String callLoginUserApi(String username, String password) {
+    // Вызов API для входа пользователя (пользователь)
+    private static JSONObject callLoginUserApi(String username, String password) {
         try {
             URL url = new URL("http://localhost:9000/login");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -427,18 +413,20 @@ public class Main {
                     response.append(line);
                 }
                 JSONObject jsonResponse = new JSONObject(response.toString());
-                return jsonResponse.getString("token");
+                // Предполагается, что API возвращает объект User в формате JSON
+                return jsonResponse.getJSONObject("user"); // Возвращаем объект User
             } else {
                 System.out.println("Ошибка входа: " + conn.getResponseMessage());
-                return null;
+                return null; // Возвращаем null, если ответ не OK
             }
         } catch (IOException e) {
             System.out.println("Ошибка соединения с API: " + e.getMessage());
-            return null;
+            return null; // Возвращаем null, если возникла ошибка
         }
     }
 
-    private static void callInitiateOperationApi(long operationId, String description, long userId, String destination, String channel, String token) {
+    // Вызов API для генерации кода OTP (пользователь)
+    private static void callInitiateOperationApi(long operationId, String description, long userId, String channel, String token) {
         try {
             URL url = new URL("http://localhost:9000/initiate-operation");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -452,7 +440,6 @@ public class Main {
             json.put("id", operationId);
             json.put("description", description);
             json.put("user_id", userId);
-            json.put("destination", destination);
             json.put("channel", channel);
 
             // Отправляем данные
@@ -466,6 +453,46 @@ public class Main {
                 System.out.println("Операция инициирована успешно.");
             } else {
                 System.out.println("Ошибка инициирования операции: " + conn.getResponseMessage());
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка соединения с API: " + e.getMessage());
+        }
+    }
+
+    // Вызов API для проверки OTP кода (пользователь)
+
+    private static void callVerifyOtpCodeApi(String code, String token) {
+        try {
+            URL url = new URL("http://localhost:9000/verify-otp-code");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setDoOutput(true);
+
+            // Создаем JSON для отправки
+            JSONObject json = new JSONObject();
+            json.put("code", code);
+
+            // Отправляем данные
+            OutputStream os = conn.getOutputStream();
+            os.write(json.toString().getBytes());
+            os.flush();
+
+            // Читаем ответ
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                StringBuilder response = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                String message = jsonResponse.getString("message");
+                System.out.println(message);
+            } else {
+                System.out.println("Ошибка проверки OTP-кода: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
             System.out.println("Ошибка соединения с API: " + e.getMessage());

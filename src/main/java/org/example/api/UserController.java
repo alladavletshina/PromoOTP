@@ -6,9 +6,6 @@ import org.example.model.User;
 import org.example.service.OtpService;
 import org.example.service.UserService;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.DefaultClaims;
 import org.json.JSONObject;
 
 import static org.example.Main.getInput;
@@ -16,8 +13,6 @@ import static org.example.Main.getInput;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
 
 public class UserController {
 
@@ -90,14 +85,14 @@ public class UserController {
         String destination = " +79150887621.";
 
         try {
-            otpService.initiateOperationToSmpp(destination, otpCode);
+            otpService.initiateOperationToSmpp(otpCode);
             System.out.println("OTP-код отправлен на ваш номер " + destination);
         } catch (Exception e) {
             System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
         }
     }
 
-    public void initiateProtectedOperationToEmail(Operation operation, String token) {
+    /*public void initiateProtectedOperationToEmail(long id_operation, String description, String token) {
 
         //данные для генерации OTP кода
         int CodeLength = otpService.getCodeLength();
@@ -110,19 +105,19 @@ public class UserController {
         //создан объект OTP кода
         OtpCode otpCode = new OtpCode(
                 operation.getUserId(),
-                operation.getId(),
+                id_operation,
                 generatedOtpCode,
                 "ACTIVE",
                 currentTime,
                 expirationTime,
-                operation.getDescription());
+                description);
 
         System.out.println("\nСгенерирован OTP-код: " + otpCode.getCode());
 
         System.out.print("\nЭлектронная почта: ");
         String email = getInput("");
 
-        System.out.println("\nИнициирована защищённая операция: " + operation.getDescription());
+        System.out.println("\nИнициирована защищённая операция: " + description);
 
         try {
             otpService.initiateOperationToEmail(email, otpCode);
@@ -130,7 +125,7 @@ public class UserController {
         } catch (Exception e) {
             System.out.println("Ошибка генерации OTP-кода: " + e.getMessage());
         }
-    }
+    }*/
 
     // Метод для сохранения всех данных OTP-кода в файл в текущей директории
     public void saveOtpCodeToFile(Operation operation, String token) {

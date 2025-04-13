@@ -14,11 +14,11 @@ import org.example.model.User;
 import org.example.service.OtpService;
 import org.example.service.UserService;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.util.Date;
+import org.json.JSONObject;
 
 import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
@@ -41,8 +41,10 @@ public class UserApi {
     public void startServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/register", new RegisterHandler());
-        server.createContext("/login", new LoginHandler(token));
-        server.createContext("/initiate-operation", new InitiateOperationHandler());
+        server.createContext("/login", new LoginHandler(userService));
+        server.createContext("/initiate-operation", new InitiateOperationHandler(otpService));
+        server.createContext("/verify-otp-code", new VerifyOtpCodeHandler(otpService));
+
         server.setExecutor(null); // creates a default executor
         server.start();
         System.out.println("User API server started on port " + PORT);
@@ -60,6 +62,40 @@ public class UserApi {
         // Start the API server
         UserApi userApi = new UserApi(userService, otpService);
         userApi.startServer();
+    }
+
+    static class VerifyOtpCodeHandler implements HttpHandler {
+        private final OtpService otpService;
+
+        public VerifyOtpCodeHandler(OtpService otpService) {
+            this.otpService = otpService;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!exchange.getRequestMethod().equals("POST")) {
+                sendErrorResponse(exchange, 405, "Method Not Allowed");
+                return;
+            }
+
+            // Read request body
+            String requestBody = readRequestBody(exchange);
+            JSONObject json = new JSONObject(requestBody);
+            String code = json.getString("code");
+
+            try {
+                boolean isValid = otpService.getOtpCode(code);
+                JSONObject responseJson = new JSONObject();
+                if (isValid) {
+                    responseJson.put("message", "Код введен верно!");
+                } else {
+                    responseJson.put("message", "Неверный код!");
+                }
+                sendSuccessResponse(exchange, responseJson.toString());
+            } catch (Exception e) {
+                sendErrorResponse(exchange, 500, "Ошибка проверки OTP-кода: " + e.getMessage());
+            }
+        }
     }
 
     // Handler for registering a new user
@@ -92,13 +128,12 @@ public class UserApi {
         }
     }
 
-    // Handler for logging in an existing user
-    class LoginHandler implements HttpHandler {
+    static class LoginHandler implements HttpHandler {
 
-        private final String token;
+        private final UserService userService;
 
-        public LoginHandler(String token) {
-            this.token = token;
+        public LoginHandler(UserService userService) {
+            this.userService = userService;
         }
 
         @Override
@@ -117,9 +152,10 @@ public class UserApi {
             // Check if user exists
             User user = userService.getUserByUsername(username, password);
             if (user != null) {
-                // Generate token
+                // Prepare success response with both token and user data
                 JSONObject responseJson = new JSONObject();
-                responseJson.put("token", token);
+                responseJson.put("user", user.toJSONObject()); // Convert User object to JSON
+
                 sendSuccessResponse(exchange, responseJson.toString());
             } else {
                 sendErrorResponse(exchange, 401, "Unauthorized: Invalid credentials.");
@@ -128,7 +164,14 @@ public class UserApi {
     }
 
     // Handler for initiating a protected operation
-    class InitiateOperationHandler implements HttpHandler {
+    static class InitiateOperationHandler implements HttpHandler {
+
+        private final OtpService otpService;
+
+        public InitiateOperationHandler(OtpService otpService) {
+            this.otpService = otpService;
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (!exchange.getRequestMethod().equals("POST")) {
@@ -143,11 +186,8 @@ public class UserApi {
             String description = json.getString("description");
             long userId = json.getLong("user_id");
 
-            // Create an operation object
-            Operation operation = new Operation(operationId, description, userId);
-
             // Determine where to send the OTP code
-            String destination = json.getString("destination");
+            //String destination = json.getString("destination");
             String channel = json.getString("channel"); // email, SMS, etc.
 
             // Generate OTP code
@@ -159,19 +199,21 @@ public class UserApi {
 
             // Create OTP code object
             OtpCode otpCode = new OtpCode(
-                    operation.getUserId(),
-                    operation.getId(),
+                    userId,
+                    operationId,
                     generatedOtpCode,
                     "ACTIVE",
                     currentTime,
                     expirationTime,
-                    operation.getDescription());
+                    description);
 
             // Send OTP code based on the selected channel
             if (channel.equals("email")) {
-                otpService.initiateOperationToEmail(destination, otpCode);
+                otpService.initiateOperationToEmail(otpCode);
             } else if (channel.equals("sms")) {
-                otpService.initiateOperationToSmpp(destination, otpCode);
+                otpService.initiateOperationToSmpp(otpCode);
+            } else if (channel.equals("file")) {
+                otpService.saveOtpCodeToFile(otpCode);
             } else {
                 sendErrorResponse(exchange, 400, "Unsupported channel.");
                 return;
@@ -182,6 +224,16 @@ public class UserApi {
             sendSuccessResponse(exchange, responseJson.toString());
         }
 
+        private static String readRequestBody(HttpExchange exchange) throws IOException {
+            InputStream is = exchange.getRequestBody();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        }
     }
 
     // Helper methods
@@ -210,23 +262,4 @@ public class UserApi {
         return requestBody.toString();
     }
 
-    private String generateJwtToken(User user) {
-        // Example of generating a JWT token
-        long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
-
-        DefaultClaims claims = new DefaultClaims();
-        claims.setSubject(user.getUsername()); // Subject (user identifier)
-        claims.setIssuedAt(now);              // Issued at time
-        claims.setExpiration(new Date(nowMillis + 3600000)); // Expiration time (1 hour)
-
-        // Signature key for signing the token
-        String secretKey = "mySecretKey"; // Replace with real secret key!
-
-        // Build and sign the token
-        return Jwts.builder()
-                .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS512, secretKey)
-                .compact();
-    }
 }
