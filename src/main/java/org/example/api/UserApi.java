@@ -14,8 +14,7 @@ import org.example.service.UserService;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Objects;
+
 
 import org.example.util.TelegramBot;
 import org.json.JSONObject;
@@ -46,13 +45,13 @@ public class UserApi {
         server.createContext("/initiate-operation", new InitiateOperationHandler(otpService));
         server.createContext("/verify-otp-code", new VerifyOtpCodeHandler(otpService));
 
-        server.setExecutor(null); // creates a default executor
+        server.setExecutor(null);
         server.start();
         System.out.println("User API server started on port " + PORT);
     }
 
     public static void main(String[] args) throws IOException {
-        // Initialize services
+
         UserDao userDao = new UserDao();
         OtpDao otpDao = new OtpDao();
         EmailNotificationService emailService = new EmailNotificationService();
@@ -61,7 +60,7 @@ public class UserApi {
         UserService userService = new UserService(userDao);
         OtpService otpService = new OtpService(emailService, otpDao, smsSender, telegramBot);
 
-        // Start the API server
+
         UserApi userApi = new UserApi(userService, otpService);
         userApi.startServer();
     }
@@ -80,7 +79,7 @@ public class UserApi {
                 return;
             }
 
-            // Read request body
+
             String requestBody = readRequestBody(exchange);
             JSONObject json = new JSONObject(requestBody);
             String code = json.getString("code");
@@ -101,7 +100,7 @@ public class UserApi {
         }
     }
 
-    // Handler for registering a new user
+
     class RegisterHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -110,7 +109,7 @@ public class UserApi {
                 return;
             }
 
-            // Read request body
+
             String requestBody = readRequestBody(exchange);
             JSONObject json = new JSONObject(requestBody);
             String username = json.getString("username");
@@ -155,7 +154,7 @@ public class UserApi {
                 return;
             }
 
-            // Read request body
+
             String requestBody = readRequestBody(exchange);
             JSONObject json = new JSONObject(requestBody);
             String username = json.getString("username");
@@ -185,7 +184,7 @@ public class UserApi {
         }
     }
 
-    // Handler for initiating a protected operation
+
     static class InitiateOperationHandler implements HttpHandler {
 
         private final OtpService otpService;
@@ -201,24 +200,24 @@ public class UserApi {
                 return;
             }
 
-            // Read request body
+
             String requestBody = readRequestBody(exchange);
             JSONObject json = new JSONObject(requestBody);
             long operationId = json.getLong("id");
             String description = json.getString("description");
             long userId = json.getLong("user_id");
 
-            // Determine where to send the OTP code
+
             String channel = json.getString("channel"); // email, SMS, etc.
 
-            // Generate OTP code
+
             int codeLength = otpService.getCodeLength();
             int lifeTimeInMinutes = otpService.getLifeTimeInMinutes();
             String generatedOtpCode = otpService.generateOtpCode(codeLength);
             LocalDateTime currentTime = LocalDateTime.now();
             LocalDateTime expirationTime = currentTime.plusMinutes(lifeTimeInMinutes);
 
-            // Create OTP code object
+
             OtpCode otpCode = new OtpCode(
                     userId,
                     operationId,
@@ -228,7 +227,7 @@ public class UserApi {
                     expirationTime,
                     description);
 
-            // Send OTP code based on the selected channel
+
             if (channel.equals("email")) {
                 otpService.initiateOperationToEmail(otpCode);
             } else if (channel.equals("sms")) {
@@ -273,7 +272,7 @@ public class UserApi {
         }
     }
 
-    // Helper methods
+
     private static void sendSuccessResponse(HttpExchange exchange, String response) throws IOException {
         exchange.sendResponseHeaders(200, response.getBytes().length);
         OutputStream os = exchange.getResponseBody();

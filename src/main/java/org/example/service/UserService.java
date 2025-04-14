@@ -31,7 +31,6 @@ public class UserService {
     }
 
     public boolean updateUser(User user) {
-        // Можно добавить проверку валидности пользователя перед обновлением
         return userDao.updateUser(user);
     }
 

@@ -91,7 +91,7 @@ public class EmailNotificationService {
 
     public static void main(String[] args) {
         try {
-            // Создание объекта EmailNotificationService
+
             EmailNotificationService service = new EmailNotificationService();
 
             // Адрес получателя и код подтверждения

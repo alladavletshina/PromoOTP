@@ -40,11 +40,11 @@ public class SmppClient {
 
     public void sendSms(String destination, String code) {
         try {
-            // 1. Установка соединения
+
             TCPIPConnection connection = new TCPIPConnection(host, port);
             Session session = new Session(connection);
 
-            // 2. Подготовка Bind Request
+
             BindTransmitter bindRequest = new BindTransmitter();
             bindRequest.setSystemId(systemId);
             bindRequest.setPassword(password);
@@ -52,16 +52,16 @@ public class SmppClient {
             bindRequest.setInterfaceVersion((byte) 0x34); // SMPP v3.4
             bindRequest.setAddressRange(sourceAddress);
 
-            // 3. Выполнение привязки
+
             BindResponse bindResponse = session.bind(bindRequest);
             if (bindResponse.getCommandStatus() != 0) {
                 throw new Exception("Bind failed: " + bindResponse.getCommandStatus());
             }
 
-            // 4. Отправка сообщения
+
             SubmitSM submitSm = new SubmitSM();
 
-            // Добавляем проверку на null
+
             if (sourceAddress == null || sourceAddress.trim().isEmpty()) {
                 throw new IllegalStateException("Source address cannot be empty or null");
             }

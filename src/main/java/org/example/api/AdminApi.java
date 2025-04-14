@@ -43,7 +43,7 @@ public class AdminApi {
         System.out.println("Admin API server started on port " + PORT);
     }
 
-    // Handler for changing OTP configuration
+
     static class ConfigureOtpHandler implements HttpHandler {
         private OtpService otpService;
 
@@ -58,7 +58,7 @@ public class AdminApi {
                 return;
             }
 
-            // Parse the request body to extract OTP configuration details
+
             String requestBody = readRequestBody(exchange);
             String[] params = requestBody.split("&");
             List<String> paramList = new ArrayList<>();
@@ -73,7 +73,7 @@ public class AdminApi {
                 int codeLength = Integer.parseInt(paramList.get(0));
                 int lifetimeInMinutes = Integer.parseInt(paramList.get(1));
 
-                // Call service method to update OTP configuration
+
                 try {
                     otpService.changeOtpConfig(codeLength, lifetimeInMinutes);
                     sendSuccessResponse(exchange, "OTP configuration updated successfully.");
@@ -86,7 +86,7 @@ public class AdminApi {
         }
     }
 
-    // Handler for listing users
+
     static class ListUsersHandler implements HttpHandler {
         private final UserService userService;
 
@@ -100,7 +100,7 @@ public class AdminApi {
                 sendErrorResponse(exchange, 405, "Method Not Allowed");
                 return;
             }
-            // Call service method to retrieve users
+
             try {
                 List<User> users = userService.getAllUsers();
                 String response = "";
@@ -114,7 +114,7 @@ public class AdminApi {
         }
     }
 
-    // Handler for deleting a user
+
     static class DeleteUserHandler implements HttpHandler {
 
         private final UserService userService;
@@ -130,7 +130,7 @@ public class AdminApi {
                 return;
             }
 
-            // Extract user ID from path parameter
+
             String path = exchange.getRequestURI().toString();
             String[] pathParts = path.split("/");
             if (pathParts.length < 3) {
@@ -149,7 +149,7 @@ public class AdminApi {
         }
     }
 
-    // Helper methods
+
     private static void sendSuccessResponse(HttpExchange exchange, String response) throws IOException {
         exchange.sendResponseHeaders(200, response.getBytes().length);
         OutputStream os = exchange.getResponseBody();
