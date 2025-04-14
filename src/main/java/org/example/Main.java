@@ -472,7 +472,7 @@ public class Main {
                 return jsonResponse.getJSONObject("user"); // Возвращаем объект User
             } else {
                 logger.error("\nОшибка входа: " + conn.getResponseMessage());
-                System.out.println("Ошибка входа: " + conn.getResponseMessage())
+                System.out.println("Ошибка входа: " + conn.getResponseMessage());
                 return null; // Возвращаем null, если ответ не OK
             }
         } catch (IOException e) {
