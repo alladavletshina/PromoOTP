@@ -169,7 +169,19 @@ public class Main {
                     if (checkTokenValidity(token)) {
                         // Данные для создания операции
                         System.out.print("ID операции: ");
-                        long id_operation = Long.parseLong(getInput(""));
+
+                        boolean validInput = false;
+                        long id_operation = -1L;
+
+                        while (!validInput) {
+                            try {
+                                id_operation = Long.parseLong(getInput(""));
+                                break;
+                            } catch (NumberFormatException e) {
+                                System.out.println("Некорректный ввод! Пожалуйста, введите число.");
+                            }
+                        }
+
                         System.out.print("Описание операции: ");
                         String description = getInput("");
 
@@ -398,7 +410,7 @@ public class Main {
                     userId = Long.parseLong(getInput(""));
                     break;
                 } catch (NumberFormatException e) {
-                    System.out.println("Некорректный ввод! Пожалуйста, введите целочисленное число.");
+                    System.out.println("Некорректный ввод! Пожалуйста, введите число.");
                 }
             }
 
