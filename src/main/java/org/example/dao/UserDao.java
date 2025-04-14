@@ -48,6 +48,32 @@ public class UserDao {
         return users;
     }
 
+    public List<User> findAllAdmins() {
+        List<User> users = new ArrayList<>();
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE role = ?");
+
+            stmt.setString(1, "ADMIN");
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                // Создаем объект User с преобразованной ролью
+                User user = new User(
+                        rs.getLong("id"),          // ID пользователя
+                        rs.getString("username"),  // Имя пользователя
+                        rs.getString("password_hash"), // Хэш пароля
+                        rs.getString("role")
+                );
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return users;
+    }
+
     public User findUserByUsername(String username) {
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ?");

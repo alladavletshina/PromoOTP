@@ -117,6 +117,12 @@ public class UserApi {
             String password = json.getString("password");
             String role = json.getString("role");
 
+            // Проверяем, существует ли администратор, если да - выдаём ошибку
+            if (userService.isExistAdmin() && role.equals("ADMIN")) {
+                sendErrorResponse(exchange, 409, "Conflict: User with role 'ADMIN' already exists.");
+                return;
+            }
+
             // Генерируем соль и хешируем пароль
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12)); // Сложность хеширования - 12
 

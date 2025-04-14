@@ -17,6 +17,11 @@ public class UserService {
         return userDao.findAllUsers();
     }
 
+    public boolean isExistAdmin() {
+        List<User> admins = userDao.findAllAdmins();
+        return !admins.isEmpty(); // Вернём true, если хотя бы один администратор есть
+    }
+
     public User getUserByUsername(String username) {
         return userDao.findUserByUsername(username);
     }
