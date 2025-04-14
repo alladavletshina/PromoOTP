@@ -19,6 +19,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -45,7 +46,7 @@ public class Main {
         System.out.println("1. Зарегистрироваться");
         System.out.println("2. Войти");
 
-        int choice = Integer.parseInt(getInput("Ваш выбор: "));
+        int choice = askForValidChoice();
 
         switch (choice) {
             case 1:
@@ -104,7 +105,7 @@ public class Main {
             System.out.println("3. Удалить пользователя");
             System.out.println("0. Выход");
 
-            int choice = Integer.parseInt(getInput("Ваш выбор: "));
+            int choice = askForValidChoice();
 
             switch (choice) {
                 case 1:
@@ -161,7 +162,7 @@ public class Main {
             System.out.println("2. Проверить OTP-код");
             System.out.println("0. Выход");
 
-            int choice = Integer.parseInt(getInput("Ваш выбор: "));
+            int choice = askForValidChoice();
 
             switch (choice) {
                 case 1:
@@ -180,7 +181,7 @@ public class Main {
                         System.out.println("4. Сохранить в файл");
                         System.out.println("0. Выход");
 
-                        int choice_ = Integer.parseInt(getInput("Ваш выбор: "));
+                        int choice_ = askForValidChoice();
 
                         switch (choice_) {
                             case 1:
@@ -248,6 +249,21 @@ public class Main {
         return scanner.nextLine();
     }
 
+    public static int askForValidChoice() {
+        boolean validInput = false;
+        int choice = -1;
+
+        while (!validInput) {
+            try {
+                choice = Integer.parseInt(getInput("Ваш выбор: "));
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Некорректный ввод! Пожалуйста, введите целочисленное число.");
+            }
+        }
+        return choice;
+    }
+
     private static String generateJwtToken(String username) {
         logger.debug("\nГенерация JWT-токена для пользователя: {}", username);
         // Пример генерации JWT-токена
@@ -304,10 +320,10 @@ public class Main {
         System.out.println("Укажите новую конфигурацию OTP-кодов:");
 
         System.out.print("Длина OTP-кода: ");
-        int codeLength = Integer.parseInt(getInput(""));
+        int codeLength = askForValidChoice();
 
         System.out.print("Время жизни OTP-кода (минуты): ");
-        int lifetimeInMinutes = Integer.parseInt(getInput(""));
+        int lifetimeInMinutes = askForValidChoice();
 
         try {
             URL url = new URL("http://localhost:8000/admin/configure-otp");
@@ -373,7 +389,18 @@ public class Main {
 
         try {
             System.out.print("Введите id пользователя для удаления: ");
-            long userId = Long.parseLong(getInput(""));
+
+            boolean validInput = false;
+            long userId = -1L;
+
+            while (!validInput) {
+                try {
+                    userId = Long.parseLong(getInput(""));
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("Некорректный ввод! Пожалуйста, введите целочисленное число.");
+                }
+            }
 
             URL url = new URL("http://localhost:8000/admin/delete-user/" + userId);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
