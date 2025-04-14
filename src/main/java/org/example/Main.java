@@ -6,12 +6,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClaims;
 import org.example.dao.OtpDao;
 import org.example.dao.UserDao;
-import org.example.util.EmailNotificationService;
 import org.example.service.OtpService;
 import org.example.service.UserService;
+import org.example.util.EmailNotificationService;
 import org.example.util.SmppClient;
 import org.example.util.TelegramBot;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -23,8 +25,11 @@ import java.util.Scanner;
 public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
+
+        logger.info("Приложение запущено!");
 
         // Создание общих объектов сервисов и контроллеров
         TelegramBot telegramBot = new TelegramBot();
@@ -44,10 +49,12 @@ public class Main {
 
         switch (choice) {
             case 1:
+                logger.info("Начало процесса регистрации пользователя");
                 callRegisterUserApi();
                 break;
             case 2:
-                System.out.println("Пожалуйста, войдите в систему.");
+                logger.info("Начало процесса авторизации пользователя");
+                System.out.println("\nПожалуйста, войдите в систему.");
                 String name = getInput("Укажите имя: ");
                 String password = getInput("Пароль: ");
 
@@ -59,7 +66,7 @@ public class Main {
                     String token = generateJwtToken(username);
 
                     if (token != null) {
-                        System.out.println("Успешный вход. Ваш токен: " + token);
+                        logger.info("Авторизация прошла успешно. Пользователь: {}", username);
 
                         if (Objects.equals(role, "ADMIN")) {
                             runAdminInterface(otpService, token);
@@ -67,21 +74,25 @@ public class Main {
                             runUserInterface(userId, otpService, token);
                         }
                     } else {
-                        System.out.println("Ошибка входа: Неправильное имя пользователя или пароль.");
+                        logger.warn("Ошибка авторизации: неправильное имя пользователя.");
+                        System.out.println("Неправильное имя пользователя или пароль");
                     }
 
                 } else {
+                    logger.warn("Ошибка авторизации: пустое значение ответа от сервера");
                     System.out.println("Ошибка входа.");
                 }
 
                 break;
             default:
+                logger.warn("Неверный выбор меню: {}", choice);
                 System.out.println("Неправильный выбор. Попробуйте снова.");
         }
     }
 
     // Метод для запуска интерфейса администратора
     private static void runAdminInterface(OtpService otpService, String token) {
+        logger.info("Администраторский интерфейс запущен");
 
         //старт планировщика
         otpService.initScheduler();
@@ -98,31 +109,39 @@ public class Main {
             switch (choice) {
                 case 1:
                     if (checkTokenValidity(token)) {
+                        logger.info("Изменение настроек OTP-кода администратором");
                         callChangeOtpConfigApi(token);
                     } else {
+                        logger.warn("Неудачная попытка изменить настройки OTP-кода: токен недействителен");
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 2:
                     if (checkTokenValidity(token)) {
+                        logger.info("Администратор запрашивает список пользователей");
                         callListUsersApi(token);
                     } else {
+                        logger.warn("Неудачный запрос списка пользователей: токен недействителен");
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 3:
                     if (checkTokenValidity(token)) {
+                        logger.info("Удаление пользователя администратором");
                         callDeleteUserApi(token);
                     } else {
+                        logger.warn("Неудачное удаление пользователя: токен недействителен");
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 0:
                     // Остановка планировщика задач
                     otpService.shutdown();
+                    logger.info("Администратор завершил сессию");
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
+                    logger.warn("Некорректный выбор действия администратором: {}", choice);
                     System.out.println("Неправильный выбор. Попробуйте снова.");
             }
         }
@@ -130,6 +149,8 @@ public class Main {
 
     // Метод для запуска интерфейса пользователя
     private static void runUserInterface(long userId, OtpService otpService, String token) {
+
+        logger.info("Интерфейс пользователя запущен для ID: {}", userId);
 
         //старт планировщика
         otpService.initScheduler();
@@ -163,27 +184,34 @@ public class Main {
 
                         switch (choice_) {
                             case 1:
+                                logger.info("Инициирование операции №{}, доставка OTP-кода по электронной почте", id_operation);
                                 callInitiateOperationApi(id_operation, description, userId, "email", token);
                                 break;
                             case 2:
+                                logger.info("Инициирование операции №{}, доставка OTP-кода по SMS", id_operation);
                                 callInitiateOperationApi(id_operation, description, userId, "sms", token);
                                 break;
                             case 3:
+                                logger.info("Инициирование операции №{}, доставка OTP-кода через Telegram", id_operation);
                                 callInitiateOperationApi(id_operation, description, userId, "telegram", token);
                                 break;
                             case 4:
+                                logger.info("Инициирование операции №{}, сохранение OTP-кода в файле", id_operation);
                                 callInitiateOperationApi(id_operation, description, userId, "file", token);
                                 break;
                             case 0:
                                 // Остановка планировщика задач
                                 otpService.shutdown();
 
+                                logger.info("Пользователь завершил сессию");
                                 System.out.println("Выход.");
                                 return;
                             default:
+                                logger.warn("Некорректный выбор канала доставки OTP-кода: {}", choice_);
                                 System.out.println("Неправильный выбор. Попробуйте снова.");
                         }
                     } else {
+                        logger.warn("Неуспешная проверка OTP-кода: токен недействителен");
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
@@ -194,18 +222,21 @@ public class Main {
                         System.out.print("OTP-код: ");
                         String code = getInput("");
 
+                        logger.info("Проверка введённого OTP-кода: {}", code);
                         callVerifyOtpCodeApi(code, token);
                     } else {
+                        logger.warn("Ошибка проверки OTP-кода: токен недействителен");
                         System.out.println("Токен истек или недействителен. Повторите попытку.");
                     }
                     break;
                 case 0:
                     // Остановка планировщика задач
                     otpService.shutdown();
-
+                    logger.info("Пользователь завершил сессию");
                     System.out.println("Завершаем работу приложения.");
                     return;
                 default:
+                    logger.warn("Некорректный выбор действия пользователем: {}", choice);
                     System.out.println("Неправильный выбор. Попробуйте снова.");
             }
         }
@@ -218,6 +249,7 @@ public class Main {
     }
 
     private static String generateJwtToken(String username) {
+        logger.debug("\nГенерация JWT-токена для пользователя: {}", username);
         // Пример генерации JWT-токена
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
@@ -238,7 +270,7 @@ public class Main {
     }
 
     private static boolean checkTokenValidity(String token) {
-
+        logger.debug("\nПроверка действительного состояния токена: {}", token);
         String secretKey = "mySecretKey";
 
         try {
@@ -260,12 +292,14 @@ public class Main {
         } catch (Exception e) {
             // Если произошла ошибка при разборе токена, считаем его недействительным
             System.out.println("Ошибка при проверке токена: " + e.getMessage());
+            logger.error("\nОшибка при проверке токена: " + e.getMessage());
             return false;
         }
     }
 
     // Вызов API для изменения конфигурации OTP
     private static void callChangeOtpConfigApi(String token) {
+        logger.info("\nНачинается изменение конфигурации OTP");
 
         System.out.println("Укажите новую конфигурацию OTP-кодов:");
 
@@ -291,17 +325,22 @@ public class Main {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                logger.info("\nКонфигурация OTP обновлена успешно.");
                 System.out.println("Конфигурация OTP обновлена успешно.");
             } else {
+                logger.error("\nОшибка обновления конфигурации OTP: " + conn.getResponseMessage());
                 System.out.println("Ошибка обновления конфигурации OTP: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 
     // Вызов API для получения списка пользователей
     private static void callListUsersApi(String token) {
+        logger.info("\nНачинается получение списка пользователей");
+
         try {
             URL url = new URL("http://localhost:8000/admin/list-users");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -316,17 +355,22 @@ public class Main {
                 while ((line = reader.readLine()) != null) {
                     response.append(line).append("\n");
                 }
+                logger.info("\nСписок пользователей:\n" + response.toString());
                 System.out.println("Список пользователей:\n" + response.toString());
             } else {
+                logger.error("\nОшибка получения списка пользователей: " + conn.getResponseMessage());
                 System.out.println("Ошибка получения списка пользователей: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 
     // Вызов API для удаления пользователя (администратор)
     private static void callDeleteUserApi(String token) {
+        logger.info("\nНачинается удаление пользователя");
+
         try {
             System.out.print("Введите id пользователя для удаления: ");
             long userId = Long.parseLong(getInput(""));
@@ -338,17 +382,22 @@ public class Main {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                logger.info("\nПользователь удален успешно.");
                 System.out.println("Пользователь удален успешно.");
             } else {
                 System.out.println("Ошибка удаления пользователя: " + conn.getResponseMessage());
+                logger.error("\nОшибка удаления пользователя: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 
     // Вызов API для удаления пользователя (пользователь)
     private static void callRegisterUserApi() {
+
+        logger.info("\nРегистрация пользователя началась...");
 
         String username = getInput("Укажите имя: ");
         String password = getInput("Пароль: ");
@@ -375,17 +424,23 @@ public class Main {
             // Читаем ответ
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_CREATED) {
+                logger.info("\nПользователь зарегистрирован успешно.");
                 System.out.println("Пользователь зарегистрирован успешно.");
             } else {
                 System.out.println("Ошибка регистрации: " + conn.getResponseMessage());
+                logger.error("\nОшибка регистрации: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
 
     // Вызов API для входа пользователя (пользователь)
     private static JSONObject callLoginUserApi(String username, String password) {
+
+        logger.info("\nНачинается процедура авторизации пользователя с именем '{}'", username);
+
         try {
             URL url = new URL("http://localhost:9000/login");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -416,18 +471,21 @@ public class Main {
                 // Предполагается, что API возвращает объект User в формате JSON
                 return jsonResponse.getJSONObject("user"); // Возвращаем объект User
             } else {
-                System.out.println("Ошибка входа: " + conn.getResponseMessage());
+                logger.error("\nОшибка входа: " + conn.getResponseMessage());
+                System.out.println("Ошибка входа: " + conn.getResponseMessage())
                 return null; // Возвращаем null, если ответ не OK
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
             return null; // Возвращаем null, если возникла ошибка
         }
     }
 
     // Вызов API для генерации кода OTP (пользователь)
-    // Вызов API для генерации кода OTP (пользователь)
     private static void callInitiateOperationApi(long operationId, String description, long userId, String channel, String token) {
+        logger.info("\nИнициируется операция с ID: {} и описанием: {}. Доставка: {}", operationId, description, channel);
+
         try {
             URL url = new URL("http://localhost:9000/initiate-operation");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -467,9 +525,11 @@ public class Main {
                     System.out.println("Канал отправки: " + channel);
                 }
             } else {
+                logger.error("\nОшибка инициирования операции: " + conn.getResponseMessage());
                 System.out.println("Ошибка инициирования операции: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
             System.out.println("Ошибка соединения с API: " + e.getMessage());
         }
     }
@@ -477,6 +537,9 @@ public class Main {
     // Вызов API для проверки OTP кода (пользователь)
 
     private static void callVerifyOtpCodeApi(String code, String token) {
+
+        logger.info("\nПроизводится проверка OTP-кода: {}", code);
+
         try {
             URL url = new URL("http://localhost:9000/verify-otp-code");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -508,9 +571,11 @@ public class Main {
                 System.out.println(message);
             } else {
                 System.out.println("Ошибка проверки OTP-кода: " + conn.getResponseMessage());
+                logger.error("\nОшибка проверки OTP-кода: " + conn.getResponseMessage());
             }
         } catch (IOException e) {
             System.out.println("Ошибка соединения с API: " + e.getMessage());
+            logger.error("\nОшибка соединения с API: " + e.getMessage());
         }
     }
 }
